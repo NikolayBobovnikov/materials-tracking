@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<f20d17ab7c21fc0a2851b66fd7e47bbb>>
+ * @generated SignedSource<<803ebc50218923e5ac4f1ed8edf36dc1>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,20 +9,28 @@
 // @ts-nocheck
 
 import { ConcreteRequest, Query } from 'relay-runtime';
-export type TransactionListQuery$variables = {};
+export type TransactionListQuery$variables = {
+  after?: string | null;
+  first?: number | null;
+};
 export type TransactionListQuery$data = {
-  readonly allTransactions: {
+  readonly transactions: {
     readonly edges: ReadonlyArray<{
+      readonly cursor: string;
       readonly node: {
         readonly amount: number;
         readonly id: string;
         readonly invoice: {
           readonly id: string;
-        } | null;
-        readonly transactionDate: any | null;
-      } | null;
+        };
+        readonly transaction_date: string;
+      };
     } | null> | null;
-  } | null;
+    readonly pageInfo: {
+      readonly endCursor: string | null;
+      readonly hasNextPage: boolean;
+    };
+  };
 };
 export type TransactionListQuery = {
   response: TransactionListQuery$data;
@@ -31,31 +39,46 @@ export type TransactionListQuery = {
 
 const node: ConcreteRequest = (function(){
 var v0 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "after"
+},
+v1 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "first"
+},
+v2 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "id",
   "storageKey": null
 },
-v1 = [
+v3 = [
   {
     "alias": null,
     "args": [
       {
-        "kind": "Literal",
+        "kind": "Variable",
+        "name": "after",
+        "variableName": "after"
+      },
+      {
+        "kind": "Variable",
         "name": "first",
-        "value": 50
+        "variableName": "first"
       }
     ],
-    "concreteType": "TransactionNodeConnection",
+    "concreteType": "TransactionConnection",
     "kind": "LinkedField",
-    "name": "allTransactions",
+    "name": "transactions",
     "plural": false,
     "selections": [
       {
         "alias": null,
         "args": null,
-        "concreteType": "TransactionNodeEdge",
+        "concreteType": "TransactionEdge",
         "kind": "LinkedField",
         "name": "edges",
         "plural": true,
@@ -63,12 +86,12 @@ v1 = [
           {
             "alias": null,
             "args": null,
-            "concreteType": "TransactionNode",
+            "concreteType": "Transaction",
             "kind": "LinkedField",
             "name": "node",
             "plural": false,
             "selections": [
-              (v0/*: any*/),
+              (v2/*: any*/),
               {
                 "alias": null,
                 "args": null,
@@ -80,59 +103,97 @@ v1 = [
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
-                "name": "transactionDate",
+                "name": "transaction_date",
                 "storageKey": null
               },
               {
                 "alias": null,
                 "args": null,
-                "concreteType": "MaterialsInvoiceNode",
+                "concreteType": "MaterialsInvoice",
                 "kind": "LinkedField",
                 "name": "invoice",
                 "plural": false,
                 "selections": [
-                  (v0/*: any*/)
+                  (v2/*: any*/)
                 ],
                 "storageKey": null
               }
             ],
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "cursor",
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "PageInfo",
+        "kind": "LinkedField",
+        "name": "pageInfo",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "hasNextPage",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "endCursor",
             "storageKey": null
           }
         ],
         "storageKey": null
       }
     ],
-    "storageKey": "allTransactions(first:50)"
+    "storageKey": null
   }
 ];
 return {
   "fragment": {
-    "argumentDefinitions": [],
+    "argumentDefinitions": [
+      (v0/*: any*/),
+      (v1/*: any*/)
+    ],
     "kind": "Fragment",
     "metadata": null,
     "name": "TransactionListQuery",
-    "selections": (v1/*: any*/),
+    "selections": (v3/*: any*/),
     "type": "Query",
     "abstractKey": null
   },
   "kind": "Request",
   "operation": {
-    "argumentDefinitions": [],
+    "argumentDefinitions": [
+      (v1/*: any*/),
+      (v0/*: any*/)
+    ],
     "kind": "Operation",
     "name": "TransactionListQuery",
-    "selections": (v1/*: any*/)
+    "selections": (v3/*: any*/)
   },
   "params": {
-    "cacheID": "eb4d48e721e851e3b318a2859958fd4e",
+    "cacheID": "ba9720d260be4a8a4c3c8fcae1a4d490",
     "id": null,
     "metadata": {},
     "name": "TransactionListQuery",
     "operationKind": "query",
-    "text": "query TransactionListQuery {\n  allTransactions(first: 50) {\n    edges {\n      node {\n        id\n        amount\n        transactionDate\n        invoice {\n          id\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query TransactionListQuery(\n  $first: Int\n  $after: String\n) {\n  transactions(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        amount\n        transaction_date\n        invoice {\n          id\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "4dc03b6a6827a1b90322a5ea5cb7fd7f";
+(node as any).hash = "78fd2f65a56b180ca022ec367d8bce2a";
 
 export default node;

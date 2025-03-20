@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<6c4b0b4a0f58749d7519ace0c0d9ffa3>>
+ * @generated SignedSource<<02af26d6bf0a22e45d67718caa337583>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,24 +9,37 @@
 // @ts-nocheck
 
 import { ConcreteRequest, Query } from 'relay-runtime';
-export type InvoiceFormClientsSuppliersQuery$variables = {};
+export type InvoiceFormClientsSuppliersQuery$variables = {
+  clientsFirst?: number | null;
+  suppliersFirst?: number | null;
+};
 export type InvoiceFormClientsSuppliersQuery$data = {
-  readonly allClients: {
+  readonly clients: {
     readonly edges: ReadonlyArray<{
+      readonly cursor: string;
       readonly node: {
         readonly id: string;
         readonly name: string;
-      } | null;
+      };
     } | null> | null;
-  } | null;
-  readonly allSuppliers: {
+    readonly pageInfo: {
+      readonly endCursor: string | null;
+      readonly hasNextPage: boolean;
+    };
+  };
+  readonly suppliers: {
     readonly edges: ReadonlyArray<{
+      readonly cursor: string;
       readonly node: {
         readonly id: string;
         readonly name: string;
-      } | null;
+      };
     } | null> | null;
-  } | null;
+    readonly pageInfo: {
+      readonly endCursor: string | null;
+      readonly hasNextPage: boolean;
+    };
+  };
 };
 export type InvoiceFormClientsSuppliersQuery = {
   response: InvoiceFormClientsSuppliersQuery$data;
@@ -36,9 +49,14 @@ export type InvoiceFormClientsSuppliersQuery = {
 const node: ConcreteRequest = (function(){
 var v0 = [
   {
-    "kind": "Literal",
-    "name": "first",
-    "value": 50
+    "defaultValue": null,
+    "kind": "LocalArgument",
+    "name": "clientsFirst"
+  },
+  {
+    "defaultValue": null,
+    "kind": "LocalArgument",
+    "name": "suppliersFirst"
   }
 ],
 v1 = [
@@ -57,19 +75,57 @@ v1 = [
     "storageKey": null
   }
 ],
-v2 = [
+v2 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "cursor",
+  "storageKey": null
+},
+v3 = {
+  "alias": null,
+  "args": null,
+  "concreteType": "PageInfo",
+  "kind": "LinkedField",
+  "name": "pageInfo",
+  "plural": false,
+  "selections": [
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "hasNextPage",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "endCursor",
+      "storageKey": null
+    }
+  ],
+  "storageKey": null
+},
+v4 = [
   {
     "alias": null,
-    "args": (v0/*: any*/),
-    "concreteType": "ClientNodeConnection",
+    "args": [
+      {
+        "kind": "Variable",
+        "name": "first",
+        "variableName": "clientsFirst"
+      }
+    ],
+    "concreteType": "ClientConnection",
     "kind": "LinkedField",
-    "name": "allClients",
+    "name": "clients",
     "plural": false,
     "selections": [
       {
         "alias": null,
         "args": null,
-        "concreteType": "ClientNodeEdge",
+        "concreteType": "ClientEdge",
         "kind": "LinkedField",
         "name": "edges",
         "plural": true,
@@ -77,31 +133,39 @@ v2 = [
           {
             "alias": null,
             "args": null,
-            "concreteType": "ClientNode",
+            "concreteType": "Client",
             "kind": "LinkedField",
             "name": "node",
             "plural": false,
             "selections": (v1/*: any*/),
             "storageKey": null
-          }
+          },
+          (v2/*: any*/)
         ],
         "storageKey": null
-      }
+      },
+      (v3/*: any*/)
     ],
-    "storageKey": "allClients(first:50)"
+    "storageKey": null
   },
   {
     "alias": null,
-    "args": (v0/*: any*/),
-    "concreteType": "SupplierNodeConnection",
+    "args": [
+      {
+        "kind": "Variable",
+        "name": "first",
+        "variableName": "suppliersFirst"
+      }
+    ],
+    "concreteType": "SupplierConnection",
     "kind": "LinkedField",
-    "name": "allSuppliers",
+    "name": "suppliers",
     "plural": false,
     "selections": [
       {
         "alias": null,
         "args": null,
-        "concreteType": "SupplierNodeEdge",
+        "concreteType": "SupplierEdge",
         "kind": "LinkedField",
         "name": "edges",
         "plural": true,
@@ -109,48 +173,50 @@ v2 = [
           {
             "alias": null,
             "args": null,
-            "concreteType": "SupplierNode",
+            "concreteType": "Supplier",
             "kind": "LinkedField",
             "name": "node",
             "plural": false,
             "selections": (v1/*: any*/),
             "storageKey": null
-          }
+          },
+          (v2/*: any*/)
         ],
         "storageKey": null
-      }
+      },
+      (v3/*: any*/)
     ],
-    "storageKey": "allSuppliers(first:50)"
+    "storageKey": null
   }
 ];
 return {
   "fragment": {
-    "argumentDefinitions": [],
+    "argumentDefinitions": (v0/*: any*/),
     "kind": "Fragment",
     "metadata": null,
     "name": "InvoiceFormClientsSuppliersQuery",
-    "selections": (v2/*: any*/),
+    "selections": (v4/*: any*/),
     "type": "Query",
     "abstractKey": null
   },
   "kind": "Request",
   "operation": {
-    "argumentDefinitions": [],
+    "argumentDefinitions": (v0/*: any*/),
     "kind": "Operation",
     "name": "InvoiceFormClientsSuppliersQuery",
-    "selections": (v2/*: any*/)
+    "selections": (v4/*: any*/)
   },
   "params": {
-    "cacheID": "494f98e2bbe74aa7549bf7fdc23687ac",
+    "cacheID": "839e59d832af61f48ade048c7b9d1c4a",
     "id": null,
     "metadata": {},
     "name": "InvoiceFormClientsSuppliersQuery",
     "operationKind": "query",
-    "text": "query InvoiceFormClientsSuppliersQuery {\n  allClients(first: 50) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n  allSuppliers(first: 50) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n"
+    "text": "query InvoiceFormClientsSuppliersQuery(\n  $clientsFirst: Int\n  $suppliersFirst: Int\n) {\n  clients(first: $clientsFirst) {\n    edges {\n      node {\n        id\n        name\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n  suppliers(first: $suppliersFirst) {\n    edges {\n      node {\n        id\n        name\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "550817b0853d7fb9cc4e1331542aefb7";
+(node as any).hash = "e5972f4acde55ef0030cfdadaf97927f";
 
 export default node;

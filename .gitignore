@@ -140,7 +140,6 @@ node_modules/
 build/
 *_cache/
 tmp/
-__generated__/
 
 *.pyc
 *.pyo

@@ -5,30 +5,32 @@ export type CreateMaterialsInvoiceMutationResponse = {
   createMaterialsInvoice: {
     invoice: {
       id: string;
-      baseAmount: number;
+      base_amount: number;
+      __typename: string;
     };
+    errors: string[] | null;
   };
 };
 
 const CreateMaterialsInvoiceMutation = graphql`
   mutation CreateMaterialsInvoiceMutation(
-    $clientId: String!
-    $supplierId: String!
-    $invoiceDate: DateTime!
+    $clientId: ID!
+    $supplierId: ID!
+    $invoiceDate: String!
     $baseAmount: Float!
   ) {
     createMaterialsInvoice(
-      input: {
-        clientId: $clientId
-        supplierId: $supplierId
-        invoiceDate: $invoiceDate
-        baseAmount: $baseAmount
-      }
+      clientId: $clientId
+      supplierId: $supplierId
+      invoiceDate: $invoiceDate
+      baseAmount: $baseAmount
     ) {
       invoice {
         id
-        baseAmount
+        base_amount
+        __typename
       }
+      errors
     }
   }
 `;

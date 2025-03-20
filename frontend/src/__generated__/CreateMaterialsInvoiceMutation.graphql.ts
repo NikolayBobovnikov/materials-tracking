@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<3b5e19840f42f993fa6fd3574d369234>>
+ * @generated SignedSource<<968ff417968af43ffa476a54c7e81d93>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -12,16 +12,18 @@ import { ConcreteRequest, Mutation } from 'relay-runtime';
 export type CreateMaterialsInvoiceMutation$variables = {
   baseAmount: number;
   clientId: string;
-  invoiceDate: any;
+  invoiceDate: string;
   supplierId: string;
 };
 export type CreateMaterialsInvoiceMutation$data = {
   readonly createMaterialsInvoice: {
+    readonly errors: ReadonlyArray<string | null> | null;
     readonly invoice: {
-      readonly baseAmount: number;
+      readonly __typename: "MaterialsInvoice";
+      readonly base_amount: number;
       readonly id: string;
     } | null;
-  } | null;
+  };
 };
 export type CreateMaterialsInvoiceMutation = {
   response: CreateMaterialsInvoiceMutation$data;
@@ -54,33 +56,27 @@ v4 = [
     "alias": null,
     "args": [
       {
-        "fields": [
-          {
-            "kind": "Variable",
-            "name": "baseAmount",
-            "variableName": "baseAmount"
-          },
-          {
-            "kind": "Variable",
-            "name": "clientId",
-            "variableName": "clientId"
-          },
-          {
-            "kind": "Variable",
-            "name": "invoiceDate",
-            "variableName": "invoiceDate"
-          },
-          {
-            "kind": "Variable",
-            "name": "supplierId",
-            "variableName": "supplierId"
-          }
-        ],
-        "kind": "ObjectValue",
-        "name": "input"
+        "kind": "Variable",
+        "name": "baseAmount",
+        "variableName": "baseAmount"
+      },
+      {
+        "kind": "Variable",
+        "name": "clientId",
+        "variableName": "clientId"
+      },
+      {
+        "kind": "Variable",
+        "name": "invoiceDate",
+        "variableName": "invoiceDate"
+      },
+      {
+        "kind": "Variable",
+        "name": "supplierId",
+        "variableName": "supplierId"
       }
     ],
-    "concreteType": "CreateMaterialsInvoicePayload",
+    "concreteType": "MaterialsInvoicePayload",
     "kind": "LinkedField",
     "name": "createMaterialsInvoice",
     "plural": false,
@@ -88,7 +84,7 @@ v4 = [
       {
         "alias": null,
         "args": null,
-        "concreteType": "MaterialsInvoiceNode",
+        "concreteType": "MaterialsInvoice",
         "kind": "LinkedField",
         "name": "invoice",
         "plural": false,
@@ -104,10 +100,24 @@ v4 = [
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "baseAmount",
+            "name": "base_amount",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "__typename",
             "storageKey": null
           }
         ],
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "errors",
         "storageKey": null
       }
     ],
@@ -142,16 +152,16 @@ return {
     "selections": (v4/*: any*/)
   },
   "params": {
-    "cacheID": "d48ffa7491a8a6dbc3c740b5f6667c65",
+    "cacheID": "08c26f0936828878e28418d6ffa39cdd",
     "id": null,
     "metadata": {},
     "name": "CreateMaterialsInvoiceMutation",
     "operationKind": "mutation",
-    "text": "mutation CreateMaterialsInvoiceMutation(\n  $clientId: String!\n  $supplierId: String!\n  $invoiceDate: DateTime!\n  $baseAmount: Float!\n) {\n  createMaterialsInvoice(input: {clientId: $clientId, supplierId: $supplierId, invoiceDate: $invoiceDate, baseAmount: $baseAmount}) {\n    invoice {\n      id\n      baseAmount\n    }\n  }\n}\n"
+    "text": "mutation CreateMaterialsInvoiceMutation(\n  $clientId: ID!\n  $supplierId: ID!\n  $invoiceDate: String!\n  $baseAmount: Float!\n) {\n  createMaterialsInvoice(clientId: $clientId, supplierId: $supplierId, invoiceDate: $invoiceDate, baseAmount: $baseAmount) {\n    invoice {\n      id\n      base_amount\n      __typename\n    }\n    errors\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "3307d69824687751129c89be63107cc5";
+(node as any).hash = "215b2adac7c3b441ab2c0dc6e9767785";
 
 export default node;
