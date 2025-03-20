@@ -85,14 +85,14 @@ const InvoiceForm: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
   
   // Load clients and suppliers data
-  const data = useLazyLoadQuery<QueryResponse>(
+  const queryData = useLazyLoadQuery<QueryResponse>(
     ALL_CLIENTS_SUPPLIERS_QUERY, 
     { clientsFirst: 50, suppliersFirst: 50 }
   );
-  const clients = data.clients?.edges.map((e) => e.node) || [];
-  const suppliers = data.suppliers?.edges.map((e) => e.node) || [];
+  const clientsList = queryData.clients?.edges.map((e: {node: ClientNode; cursor: string}) => e.node) || [];
+  const suppliersList = queryData.suppliers?.edges.map((e: {node: SupplierNode; cursor: string}) => e.node) || [];
 
-  const onSubmit = async (data: InvoiceFormInputs) => {
+  const onSubmit = async (formData: InvoiceFormInputs) => {
     setLoading(true);
     setSuccess(null);
     setError(null);
@@ -100,10 +100,10 @@ const InvoiceForm: React.FC = () => {
     createInvoice(
       environment,
       {
-        clientId: data.clientGlobalId,
-        supplierId: data.supplierGlobalId,
-        invoiceDate: data.invoiceDate,
-        baseAmount: parseFloat(data.baseAmount.toString()),
+        clientId: formData.clientGlobalId,
+        supplierId: formData.supplierGlobalId,
+        invoiceDate: formData.invoiceDate,
+        baseAmount: parseFloat(formData.baseAmount.toString()),
       },
       (resp: CreateMaterialsInvoiceMutationResponse) => {
         setLoading(false);
@@ -145,7 +145,7 @@ const InvoiceForm: React.FC = () => {
         {...register("clientGlobalId", { required: true })}
         className="mb-4"
       >
-        {clients.map((c: ClientNode) => (
+        {clientsList.map((c: ClientNode) => (
           <MenuItem key={c.id} value={c.id}>
             {c.name}
           </MenuItem>
@@ -163,7 +163,7 @@ const InvoiceForm: React.FC = () => {
         {...register("supplierGlobalId", { required: true })}
         className="mb-4"
       >
-        {suppliers.map((s: SupplierNode) => (
+        {suppliersList.map((s: SupplierNode) => (
           <MenuItem key={s.id} value={s.id}>
             {s.name}
           </MenuItem>

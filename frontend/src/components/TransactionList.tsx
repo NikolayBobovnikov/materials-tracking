@@ -26,7 +26,8 @@ export const TRANSACTION_LIST_QUERY = graphql`
   }
 `;
 
-type TransactionListQuery = {
+// Define the query response type
+type TransactionListQueryResponse = {
   transactions: {
     edges: Array<{
       node: {
@@ -50,7 +51,7 @@ const TransactionList: React.FC = () => {
   const [first, setFirst] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
 
-  const data = useLazyLoadQuery<TransactionListQuery>(TRANSACTION_LIST_QUERY, { first, after });
+  const data = useLazyLoadQuery<TransactionListQueryResponse>(TRANSACTION_LIST_QUERY, { first, after });
 
   const loadMore = () => {
     if (data.transactions.pageInfo.hasNextPage) {
