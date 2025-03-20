@@ -17,34 +17,54 @@ type SupplierNode = {
 };
 
 type QueryResponse = {
-  allClients: {
+  clients: {
     edges: Array<{
       node: ClientNode;
+      cursor: string;
     }>;
+    pageInfo: {
+      hasNextPage: boolean;
+      endCursor: string | null;
+    };
   };
-  allSuppliers: {
+  suppliers: {
     edges: Array<{
       node: SupplierNode;
+      cursor: string;
     }>;
+    pageInfo: {
+      hasNextPage: boolean;
+      endCursor: string | null;
+    };
   };
 };
 
 const ALL_CLIENTS_SUPPLIERS_QUERY = graphql`
-  query InvoiceFormClientsSuppliersQuery {
-    allClients(first: 50) {
+  query InvoiceFormClientsSuppliersQuery($clientsFirst: Int, $suppliersFirst: Int) {
+    clients(first: $clientsFirst) {
       edges {
         node {
           id
           name
         }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
-    allSuppliers(first: 50) {
+    suppliers(first: $suppliersFirst) {
       edges {
         node {
           id
           name
         }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }
@@ -67,10 +87,10 @@ const InvoiceForm: React.FC = () => {
   // Load clients and suppliers data
   const data = useLazyLoadQuery<QueryResponse>(
     ALL_CLIENTS_SUPPLIERS_QUERY, 
-    {}
+    { clientsFirst: 50, suppliersFirst: 50 }
   );
-  const clients = data.allClients?.edges.map((e: {node: ClientNode}) => e.node) || [];
-  const suppliers = data.allSuppliers?.edges.map((e: {node: SupplierNode}) => e.node) || [];
+  const clients = data.clients?.edges.map((e) => e.node) || [];
+  const suppliers = data.suppliers?.edges.map((e) => e.node) || [];
 
   const onSubmit = async (data: InvoiceFormInputs) => {
     setLoading(true);
@@ -87,6 +107,12 @@ const InvoiceForm: React.FC = () => {
       },
       (resp: CreateMaterialsInvoiceMutationResponse) => {
         setLoading(false);
+        
+        if (resp.createMaterialsInvoice.errors && resp.createMaterialsInvoice.errors.length > 0) {
+          setError(resp.createMaterialsInvoice.errors.join(', '));
+          return;
+        }
+        
         setSuccess('Invoice created: ' + resp.createMaterialsInvoice.invoice.id);
         // Force a refetch of queries with a small delay
         setTimeout(() => {

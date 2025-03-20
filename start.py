@@ -7,10 +7,14 @@ import threading
 
 def run_backend():
     os.chdir('backend')
+    # Create a modified environment with PYTHONPATH set to include the project root
+    env = os.environ.copy()
+    env['PYTHONPATH'] = os.path.dirname(os.path.abspath(__file__)) + os.pathsep + env.get('PYTHONPATH', '')
+    
     if platform.system() == "Windows":
-        subprocess.run(["python", "run.py"], check=True)
+        subprocess.run(["python", "run.py"], check=True, env=env)
     else:
-        subprocess.run(["python3", "run.py"], check=True)
+        subprocess.run(["python3", "run.py"], check=True, env=env)
 
 def run_frontend():
     os.chdir('frontend')

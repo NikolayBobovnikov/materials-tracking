@@ -1,5 +1,5 @@
 import ariadne
-from ariadne import ObjectType, QueryType, MutationType, make_executable_schema
+from ariadne import ObjectType, QueryType, MutationType, InterfaceType, make_executable_schema
 from ariadne.asgi import GraphQL
 from graphql import GraphQLError
 from datetime import datetime
@@ -14,12 +14,24 @@ logger = logging.getLogger(__name__)
 
 # Define type definitions using SDL (Schema Definition Language)
 type_defs = """
+    interface Node {
+        id: ID!
+    }
+
+    type PageInfo {
+        hasNextPage: Boolean!
+        hasPreviousPage: Boolean!
+        startCursor: String
+        endCursor: String
+    }
+
     type Query {
-        clients: [Client!]!
-        suppliers: [Supplier!]!
-        invoices: [MaterialsInvoice!]!
-        transactions: [Transaction!]!
-        debts: [Debt!]!
+        node(id: ID!): Node
+        clients(first: Int, after: String): ClientConnection!
+        suppliers(first: Int, after: String): SupplierConnection!
+        invoices(first: Int, after: String): MaterialsInvoiceConnection!
+        transactions(first: Int, after: String): TransactionConnection!
+        debts(first: Int, after: String): DebtConnection!
         client(id: ID!): Client
         supplier(id: ID!): Supplier
         invoice(id: ID!): MaterialsInvoice
@@ -42,20 +54,50 @@ type_defs = """
         errors: [String]
     }
     
-    type Client {
+    type ClientEdge {
+        node: Client!
+        cursor: String!
+    }
+
+    type ClientConnection {
+        edges: [ClientEdge]
+        pageInfo: PageInfo!
+    }
+    
+    type Client implements Node {
         id: ID!
         name: String!
         markup_rate: Float!
-        invoices: [MaterialsInvoice!]!
+        invoices(first: Int, after: String): MaterialsInvoiceConnection!
     }
     
-    type Supplier {
+    type SupplierEdge {
+        node: Supplier!
+        cursor: String!
+    }
+
+    type SupplierConnection {
+        edges: [SupplierEdge]
+        pageInfo: PageInfo!
+    }
+    
+    type Supplier implements Node {
         id: ID!
         name: String!
-        invoices: [MaterialsInvoice!]!
+        invoices(first: Int, after: String): MaterialsInvoiceConnection!
     }
     
-    type MaterialsInvoice {
+    type MaterialsInvoiceEdge {
+        node: MaterialsInvoice!
+        cursor: String!
+    }
+
+    type MaterialsInvoiceConnection {
+        edges: [MaterialsInvoiceEdge]
+        pageInfo: PageInfo!
+    }
+    
+    type MaterialsInvoice implements Node {
         id: ID!
         client: Client!
         supplier: Supplier!
@@ -63,17 +105,37 @@ type_defs = """
         base_amount: Float!
         status: String!
         transaction: Transaction
-        debts: [Debt!]!
+        debts(first: Int, after: String): DebtConnection!
     }
     
-    type Transaction {
+    type TransactionEdge {
+        node: Transaction!
+        cursor: String!
+    }
+
+    type TransactionConnection {
+        edges: [TransactionEdge]
+        pageInfo: PageInfo!
+    }
+    
+    type Transaction implements Node {
         id: ID!
         invoice: MaterialsInvoice!
         transaction_date: String!
         amount: Float!
     }
     
-    type Debt {
+    type DebtEdge {
+        node: Debt!
+        cursor: String!
+    }
+
+    type DebtConnection {
+        edges: [DebtEdge]
+        pageInfo: PageInfo!
+    }
+    
+    type Debt implements Node {
         id: ID!
         invoice: MaterialsInvoice!
         party: String!
@@ -271,6 +333,222 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
         logger.error(f"Error creating invoice: {str(e)}")
         return {"invoice": None, "errors": [f"Error creating invoice: {str(e)}"]}
 
+# Node interface resolver
+node = InterfaceType("Node")
+
+@node.type_resolver
+def resolve_node_type(obj, *_):
+    # Determine the GraphQL type based on the Python class
+    if isinstance(obj, Client):
+        return "Client"
+    elif isinstance(obj, Supplier):
+        return "Supplier"
+    elif isinstance(obj, MaterialsInvoice):
+        return "MaterialsInvoice"
+    elif isinstance(obj, Transaction):
+        return "Transaction"
+    elif isinstance(obj, Debt):
+        return "Debt"
+    return None
+
+@query.field("node")
+def resolve_node(_, info, id):
+    # Parse the global ID to determine type and database ID
+    # This is a simple implementation; in production, you'd want to encode/decode IDs properly
+    try:
+        type_name, database_id = id.split(":")
+        if type_name == "Client":
+            return Client.query.get(database_id)
+        elif type_name == "Supplier":
+            return Supplier.query.get(database_id)
+        elif type_name == "MaterialsInvoice":
+            return MaterialsInvoice.query.get(database_id)
+        elif type_name == "Transaction":
+            return Transaction.query.get(database_id)
+        elif type_name == "Debt":
+            return Debt.query.get(database_id)
+    except:
+        return None
+    return None
+
+# Helper function for connections
+def get_connection(model_class, first=None, after=None):
+    query = model_class.query
+    
+    # Implement cursor-based pagination
+    if after:
+        # In a real app, decode the cursor to get the ID
+        # Here, we'll assume the cursor is just the ID
+        query = query.filter(model_class.id > after)
+    
+    # Limit results
+    if first is not None:
+        query = query.limit(first + 1)  # +1 to check if there's a next page
+    
+    # Execute query
+    items = query.all()
+    
+    # Check if there's a next page
+    has_next_page = False
+    if first is not None and len(items) > first:
+        has_next_page = True
+        items = items[:first]
+    
+    # Create edges
+    edges = []
+    for item in items:
+        # In a real app, encode the cursor
+        cursor = str(item.id)
+        edges.append({"node": item, "cursor": cursor})
+    
+    # Create page info
+    start_cursor = edges[0]["cursor"] if edges else None
+    end_cursor = edges[-1]["cursor"] if edges else None
+    page_info = {
+        "hasNextPage": has_next_page,
+        "hasPreviousPage": after is not None,
+        "startCursor": start_cursor,
+        "endCursor": end_cursor
+    }
+    
+    return {
+        "edges": edges,
+        "pageInfo": page_info
+    }
+
+# Connection resolvers
+@query.field("clients")
+def resolve_clients(_, info, first=None, after=None):
+    return get_connection(Client, first, after)
+
+@query.field("suppliers")
+def resolve_suppliers(_, info, first=None, after=None):
+    return get_connection(Supplier, first, after)
+
+@query.field("invoices")
+def resolve_invoices(_, info, first=None, after=None):
+    return get_connection(MaterialsInvoice, first, after)
+
+@query.field("transactions")
+def resolve_transactions(_, info, first=None, after=None):
+    return get_connection(Transaction, first, after)
+
+@query.field("debts")
+def resolve_debts(_, info, first=None, after=None):
+    return get_connection(Debt, first, after)
+
+# Relation connection resolvers
+@client.field("invoices")
+def resolve_client_invoices(obj, info, first=None, after=None):
+    query = MaterialsInvoice.query.filter_by(client_id=obj.id)
+    
+    # Apply pagination similar to get_connection
+    if after:
+        query = query.filter(MaterialsInvoice.id > after)
+    
+    if first is not None:
+        query = query.limit(first + 1)
+    
+    items = query.all()
+    
+    has_next_page = False
+    if first is not None and len(items) > first:
+        has_next_page = True
+        items = items[:first]
+    
+    edges = []
+    for item in items:
+        cursor = str(item.id)
+        edges.append({"node": item, "cursor": cursor})
+    
+    start_cursor = edges[0]["cursor"] if edges else None
+    end_cursor = edges[-1]["cursor"] if edges else None
+    page_info = {
+        "hasNextPage": has_next_page,
+        "hasPreviousPage": after is not None,
+        "startCursor": start_cursor,
+        "endCursor": end_cursor
+    }
+    
+    return {
+        "edges": edges,
+        "pageInfo": page_info
+    }
+
+@supplier.field("invoices")
+def resolve_supplier_invoices(obj, info, first=None, after=None):
+    query = MaterialsInvoice.query.filter_by(supplier_id=obj.id)
+    
+    # Apply pagination similar to get_connection
+    if after:
+        query = query.filter(MaterialsInvoice.id > after)
+    
+    if first is not None:
+        query = query.limit(first + 1)
+    
+    items = query.all()
+    
+    has_next_page = False
+    if first is not None and len(items) > first:
+        has_next_page = True
+        items = items[:first]
+    
+    edges = []
+    for item in items:
+        cursor = str(item.id)
+        edges.append({"node": item, "cursor": cursor})
+    
+    start_cursor = edges[0]["cursor"] if edges else None
+    end_cursor = edges[-1]["cursor"] if edges else None
+    page_info = {
+        "hasNextPage": has_next_page,
+        "hasPreviousPage": after is not None,
+        "startCursor": start_cursor,
+        "endCursor": end_cursor
+    }
+    
+    return {
+        "edges": edges,
+        "pageInfo": page_info
+    }
+
+@materials_invoice.field("debts")
+def resolve_invoice_debts(obj, info, first=None, after=None):
+    query = Debt.query.filter_by(invoice_id=obj.id)
+    
+    # Apply pagination similar to get_connection
+    if after:
+        query = query.filter(Debt.id > after)
+    
+    if first is not None:
+        query = query.limit(first + 1)
+    
+    items = query.all()
+    
+    has_next_page = False
+    if first is not None and len(items) > first:
+        has_next_page = True
+        items = items[:first]
+    
+    edges = []
+    for item in items:
+        cursor = str(item.id)
+        edges.append({"node": item, "cursor": cursor})
+    
+    start_cursor = edges[0]["cursor"] if edges else None
+    end_cursor = edges[-1]["cursor"] if edges else None
+    page_info = {
+        "hasNextPage": has_next_page,
+        "hasPreviousPage": after is not None,
+        "startCursor": start_cursor,
+        "endCursor": end_cursor
+    }
+    
+    return {
+        "edges": edges,
+        "pageInfo": page_info
+    }
+
 # Create executable schema
 schema = make_executable_schema(
     type_defs, 
@@ -280,5 +558,6 @@ schema = make_executable_schema(
     supplier,
     materials_invoice,
     transaction,
-    debt
+    debt,
+    node
 ) 

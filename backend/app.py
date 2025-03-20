@@ -17,6 +17,11 @@ Key Features:
 """
 
 import os
+import sys
+
+# Add the parent directory to sys.path so that 'backend' can be imported
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_cors import CORS

@@ -1,10 +1,22 @@
 
+    interface Node {
+        id: ID!
+    }
+
+    type PageInfo {
+        hasNextPage: Boolean!
+        hasPreviousPage: Boolean!
+        startCursor: String
+        endCursor: String
+    }
+
     type Query {
-        clients: [Client!]!
-        suppliers: [Supplier!]!
-        invoices: [MaterialsInvoice!]!
-        transactions: [Transaction!]!
-        debts: [Debt!]!
+        node(id: ID!): Node
+        clients(first: Int, after: String): ClientConnection!
+        suppliers(first: Int, after: String): SupplierConnection!
+        invoices(first: Int, after: String): MaterialsInvoiceConnection!
+        transactions(first: Int, after: String): TransactionConnection!
+        debts(first: Int, after: String): DebtConnection!
         client(id: ID!): Client
         supplier(id: ID!): Supplier
         invoice(id: ID!): MaterialsInvoice
@@ -27,20 +39,50 @@
         errors: [String]
     }
     
-    type Client {
+    type ClientEdge {
+        node: Client!
+        cursor: String!
+    }
+
+    type ClientConnection {
+        edges: [ClientEdge]
+        pageInfo: PageInfo!
+    }
+    
+    type Client implements Node {
         id: ID!
         name: String!
         markup_rate: Float!
-        invoices: [MaterialsInvoice!]!
+        invoices(first: Int, after: String): MaterialsInvoiceConnection!
     }
     
-    type Supplier {
+    type SupplierEdge {
+        node: Supplier!
+        cursor: String!
+    }
+
+    type SupplierConnection {
+        edges: [SupplierEdge]
+        pageInfo: PageInfo!
+    }
+    
+    type Supplier implements Node {
         id: ID!
         name: String!
-        invoices: [MaterialsInvoice!]!
+        invoices(first: Int, after: String): MaterialsInvoiceConnection!
     }
     
-    type MaterialsInvoice {
+    type MaterialsInvoiceEdge {
+        node: MaterialsInvoice!
+        cursor: String!
+    }
+
+    type MaterialsInvoiceConnection {
+        edges: [MaterialsInvoiceEdge]
+        pageInfo: PageInfo!
+    }
+    
+    type MaterialsInvoice implements Node {
         id: ID!
         client: Client!
         supplier: Supplier!
@@ -48,17 +90,37 @@
         base_amount: Float!
         status: String!
         transaction: Transaction
-        debts: [Debt!]!
+        debts(first: Int, after: String): DebtConnection!
     }
     
-    type Transaction {
+    type TransactionEdge {
+        node: Transaction!
+        cursor: String!
+    }
+
+    type TransactionConnection {
+        edges: [TransactionEdge]
+        pageInfo: PageInfo!
+    }
+    
+    type Transaction implements Node {
         id: ID!
         invoice: MaterialsInvoice!
         transaction_date: String!
         amount: Float!
     }
     
-    type Debt {
+    type DebtEdge {
+        node: Debt!
+        cursor: String!
+    }
+
+    type DebtConnection {
+        edges: [DebtEdge]
+        pageInfo: PageInfo!
+    }
+    
+    type Debt implements Node {
         id: ID!
         invoice: MaterialsInvoice!
         party: String!
