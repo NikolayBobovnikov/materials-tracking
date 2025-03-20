@@ -27,7 +27,8 @@ export const DEBT_LIST_QUERY = graphql`
   }
 `;
 
-type DebtListQuery = {
+// Define the query response type
+type DebtListQueryResponse = {
   debts: {
     edges: Array<{
       node: {
@@ -52,7 +53,7 @@ const DebtList: React.FC = () => {
   const [first, setFirst] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
 
-  const data = useLazyLoadQuery<DebtListQuery>(DEBT_LIST_QUERY, { first, after });
+  const data = useLazyLoadQuery<DebtListQueryResponse>(DEBT_LIST_QUERY, { first, after });
 
   const loadMore = () => {
     if (data.debts.pageInfo.hasNextPage) {

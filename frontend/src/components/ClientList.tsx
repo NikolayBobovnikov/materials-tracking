@@ -12,14 +12,6 @@ import {
   Box,
   Button
 } from '@mui/material';
-// Import the specific type from the generated file
-import { ClientListQuery as ClientListQueryType } from '../__generated__/ClientListQuery.graphql';
-
-type ClientNodeType = {
-  id: string;
-  name: string;
-  markup_rate: number;
-};
 
 // Define our query
 const clientListQuery = graphql`
@@ -41,11 +33,29 @@ const clientListQuery = graphql`
   }
 `;
 
+// Define the query response type
+type ClientListQueryResponse = {
+  clients: {
+    edges: Array<{
+      node: {
+        id: string;
+        name: string;
+        markup_rate: number;
+      };
+      cursor: string;
+    }>;
+    pageInfo: {
+      hasNextPage: boolean;
+      endCursor: string | null;
+    };
+  };
+};
+
 const ClientList: React.FC = () => {
   const [first, setFirst] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
   
-  const data = useLazyLoadQuery<ClientListQueryType>(
+  const data = useLazyLoadQuery<ClientListQueryResponse>(
     clientListQuery, 
     { first, after }
   );
