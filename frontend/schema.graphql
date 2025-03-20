@@ -1,0 +1,67 @@
+
+    type Query {
+        clients: [Client!]!
+        suppliers: [Supplier!]!
+        invoices: [MaterialsInvoice!]!
+        transactions: [Transaction!]!
+        debts: [Debt!]!
+        client(id: ID!): Client
+        supplier(id: ID!): Supplier
+        invoice(id: ID!): MaterialsInvoice
+        transaction(id: ID!): Transaction
+        debt(id: ID!): Debt
+    }
+    
+    type Mutation {
+        createMaterialsInvoice(
+            clientId: ID!
+            supplierId: ID!
+            invoiceDate: String!
+            baseAmount: Float!
+            status: String
+        ): MaterialsInvoicePayload!
+    }
+    
+    type MaterialsInvoicePayload {
+        invoice: MaterialsInvoice
+        errors: [String]
+    }
+    
+    type Client {
+        id: ID!
+        name: String!
+        markup_rate: Float!
+        invoices: [MaterialsInvoice!]!
+    }
+    
+    type Supplier {
+        id: ID!
+        name: String!
+        invoices: [MaterialsInvoice!]!
+    }
+    
+    type MaterialsInvoice {
+        id: ID!
+        client: Client!
+        supplier: Supplier!
+        invoice_date: String!
+        base_amount: Float!
+        status: String!
+        transaction: Transaction
+        debts: [Debt!]!
+    }
+    
+    type Transaction {
+        id: ID!
+        invoice: MaterialsInvoice!
+        transaction_date: String!
+        amount: Float!
+    }
+    
+    type Debt {
+        id: ID!
+        invoice: MaterialsInvoice!
+        party: String!
+        amount: Float!
+        created_date: String!
+    }
