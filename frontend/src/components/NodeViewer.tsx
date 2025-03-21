@@ -2,16 +2,21 @@ import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, Paper, Divider } from '@mui/material';
 import { toGlobalId } from '../RelayEnvironment';
 
+interface NodeData {
+  id: string;
+  [key: string]: unknown;
+}
+
 const NodeViewer: React.FC = () => {
   const [nodeId, setNodeId] = useState('');
   const [nodeType, setNodeType] = useState('Client');
-  const [fetchedData, setFetchedData] = useState<any>(null);
+  const [fetchedData, setFetchedData] = useState<NodeData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
   const globalId = nodeId ? toGlobalId(nodeType, nodeId) : '';
   
-  const handleFetchNode = async () => {
+  const handleFetchNode = async (): Promise<void> => {
     if (!globalId) return;
     
     setLoading(true);

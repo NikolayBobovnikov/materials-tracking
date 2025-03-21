@@ -3,43 +3,9 @@ import { TextField, Button, Box, CircularProgress, MenuItem } from '@mui/materia
 import { useForm } from 'react-hook-form';
 import { graphql, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { createInvoice, CreateMaterialsInvoiceMutationResponse } from '../mutations/CreateMaterialsInvoice';
-import { InvoiceFormClientsSuppliersQuery } from '../__generated__/InvoiceFormClientsSuppliersQuery.graphql';
+import type { InvoiceFormClientsSuppliersQuery } from './../__generated__/InvoiceFormClientsSuppliersQuery.graphql';
 
-// Add type definitions for the query response
-type ClientNode = {
-  id: string;
-  name: string;
-};
-
-type SupplierNode = {
-  id: string;
-  name: string;
-};
-
-type QueryResponse = {
-  clients: {
-    edges: Array<{
-      node: ClientNode;
-      cursor: string;
-    }>;
-    pageInfo: {
-      hasNextPage: boolean;
-      endCursor: string | null;
-    };
-  };
-  suppliers: {
-    edges: Array<{
-      node: SupplierNode;
-      cursor: string;
-    }>;
-    pageInfo: {
-      hasNextPage: boolean;
-      endCursor: string | null;
-    };
-  };
-};
-
-const ALL_CLIENTS_SUPPLIERS_QUERY = graphql`
+const query = graphql`
   query InvoiceFormClientsSuppliersQuery($clientsFirst: Int, $suppliersFirst: Int) {
     clients(first: $clientsFirst) {
       edges {
@@ -86,13 +52,14 @@ const InvoiceForm: React.FC = () => {
   
   // Load clients and suppliers data
   const queryData = useLazyLoadQuery<InvoiceFormClientsSuppliersQuery>(
-    ALL_CLIENTS_SUPPLIERS_QUERY, 
+    query, 
     { clientsFirst: 50, suppliersFirst: 50 }
   );
-  const clientsList = queryData.clients?.edges?.map((e: {node: ClientNode; cursor: string} | null) => e?.node) || [];
-  const suppliersList = queryData.suppliers?.edges?.map((e: {node: SupplierNode; cursor: string} | null) => e?.node) || [];
+  
+  const clientsList = queryData.response.clients?.edges?.map((e) => e?.node) || [];
+  const suppliersList = queryData.response.suppliers?.edges?.map((e) => e?.node) || [];
 
-  const onSubmit = async (formData: InvoiceFormInputs) => {
+  const onSubmit = async (formData: InvoiceFormInputs): Promise<void> => {
     setLoading(true);
     setSuccess(null);
     setError(null);
@@ -105,7 +72,7 @@ const InvoiceForm: React.FC = () => {
         invoiceDate: formData.invoiceDate,
         baseAmount: parseFloat(formData.baseAmount.toString()),
       },
-      (resp: any, errors) => {
+      (resp: CreateMaterialsInvoiceMutationResponse, errors) => {
         setLoading(false);
         
         if (resp.createMaterialsInvoice.errors && resp.createMaterialsInvoice.errors.length > 0) {
@@ -145,7 +112,7 @@ const InvoiceForm: React.FC = () => {
         {...register("clientGlobalId", { required: true })}
         className="mb-4"
       >
-        {clientsList.map((c: ClientNode | undefined) => {
+        {clientsList.map((c) => {
           if (!c) return null;
           return (
             <MenuItem key={c.id} value={c.id}>
@@ -166,7 +133,7 @@ const InvoiceForm: React.FC = () => {
         {...register("supplierGlobalId", { required: true })}
         className="mb-4"
       >
-        {suppliersList.map((s: SupplierNode | undefined) => {
+        {suppliersList.map((s) => {
           if (!s) return null;
           return (
             <MenuItem key={s.id} value={s.id}>

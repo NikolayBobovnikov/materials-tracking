@@ -2,10 +2,10 @@ import React from 'react';
 import { useLazyLoadQuery } from 'react-relay';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box, Button } from '@mui/material';
 import { graphql } from 'react-relay';
-import type { DebtListQuery } from '../__generated__/DebtListQuery.graphql';
+import type { DebtListQuery } from './../__generated__/DebtListQuery.graphql';
 
 // Use the imported query
-export const DEBT_LIST_QUERY = graphql`
+export const query = graphql`
   query DebtListQuery($first: Int, $after: String) {
     debts(first: $first, after: $after) {
       edges {
@@ -29,21 +29,22 @@ export const DEBT_LIST_QUERY = graphql`
 `;
 
 const DebtList: React.FC = () => {
-  const [first, setFirst] = React.useState(10);
+  const [first] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
 
-  const queryData = useLazyLoadQuery<DebtListQuery>(DEBT_LIST_QUERY, { first, after });
-  
-  // Get the actual response data
-  const data = queryData;
+  const data = useLazyLoadQuery<DebtListQuery>(
+    query, 
+    { first, after }
+  );
 
-  const loadMore = () => {
-    if (data.debts.pageInfo.hasNextPage) {
-      setAfter(data.debts.pageInfo.endCursor);
+  const loadMore = (): void => {
+    const debts = data.response.debts;
+    if (debts?.pageInfo.hasNextPage) {
+      setAfter(debts.pageInfo.endCursor);
     }
   };
 
-  if (!data.debts || !data.debts.edges || data.debts.edges.length === 0) {
+  if (!data.response.debts || !data.response.debts.edges || data.response.debts.edges.length === 0) {
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="h6" gutterBottom>Debts</Typography>
@@ -67,7 +68,7 @@ const DebtList: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.debts.edges.map((edge) => {
+            {data.response.debts.edges.map((edge) => {
               if (!edge || !edge.node) return null;
               const node = edge.node;
               return (
@@ -84,7 +85,7 @@ const DebtList: React.FC = () => {
         </Table>
       </TableContainer>
       
-      {data.debts.pageInfo.hasNextPage && (
+      {data.response.debts.pageInfo.hasNextPage && (
         <Button 
           variant="outlined" 
           onClick={loadMore} 

@@ -6,7 +6,7 @@ import TransactionList from './components/TransactionList';
 import ClientList from './components/ClientList';
 import NodeViewer from './components/NodeViewer';
 
-function App() {
+const App = (): React.ReactElement => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>

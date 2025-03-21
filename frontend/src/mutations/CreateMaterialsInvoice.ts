@@ -12,7 +12,7 @@ export type CreateMaterialsInvoiceMutationResponse = {
   };
 };
 
-const CreateMaterialsInvoiceMutation = graphql`
+const mutation = graphql`
   mutation CreateMaterialsInvoiceMutation(
     $clientId: ID!
     $supplierId: ID!
@@ -43,13 +43,13 @@ export function createInvoice(
     invoiceDate: string;  // or Date
     baseAmount: number;
   },
-  onCompleted: (response: any, errors: readonly Error[] | null | undefined) => void,
-  onError: (err: any) => void
-) {
+  onCompleted: (response: CreateMaterialsInvoiceMutationResponse, errors: readonly Error[] | null | undefined) => void,
+  onError: (err: Error) => void
+): ReturnType<typeof commitMutation> {
   return commitMutation(environment, {
-    mutation: CreateMaterialsInvoiceMutation,
-    variables: variables,
-    onCompleted: (response, errors) => {
+    mutation,
+    variables,
+    onCompleted: (response: unknown, errors: unknown) => {
       onCompleted(response as CreateMaterialsInvoiceMutationResponse, errors as readonly Error[] | null | undefined);
     },
     onError,

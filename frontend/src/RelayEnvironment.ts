@@ -12,13 +12,17 @@ export function toGlobalId(type: string, id: string): string {
 
 export function fromGlobalId(globalId: string): { type: string; id: string } {
   const [type, id] = globalId.split(':');
+  if (!type || !id) {
+    throw new Error(`Invalid global ID format: ${globalId}`);
+  }
   return { type, id };
 }
 
 const fetchQuery = (
-  operation: any,
-  variables: any,
-) => {
+  request: unknown,
+  variables: Record<string, unknown>,
+): Promise<Record<string, unknown>> => {
+  const operation = request as { text: string | null | undefined };
   return fetch('http://localhost:5000/graphql', {
     method: 'POST',
     headers: {

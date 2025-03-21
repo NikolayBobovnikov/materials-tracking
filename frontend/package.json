@@ -28,9 +28,9 @@
     "web-vitals": "^3.3.1"
   },
   "scripts": {
-    "start": "npm run relay && react-scripts start",
-    "build": "npm run type-check && npm run lint && npm run relay && react-scripts build",
-    "test": "react-scripts test",
+    "start": "npm run relay && craco start",
+    "build": "npm run type-check && npm run lint && npm run relay && craco build",
+    "test": "craco test",
     "eject": "react-scripts eject",
     "relay": "relay-compiler",
     "type-check": "tsc --noEmit",
@@ -55,6 +55,7 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "autoprefixer": "^10.4.21",
     "babel-plugin-relay": "^14.0.0",
     "postcss": "^8.5.3",

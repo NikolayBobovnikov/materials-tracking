@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<968ff417968af43ffa476a54c7e81d93>>
+ * @generated SignedSource<<ab9a1ce497407298e6c18a36f770873d>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -23,7 +23,7 @@ export type CreateMaterialsInvoiceMutation$data = {
       readonly base_amount: number;
       readonly id: string;
     } | null;
-  };
+  } | null;
 };
 export type CreateMaterialsInvoiceMutation = {
   response: CreateMaterialsInvoiceMutation$data;
@@ -76,7 +76,7 @@ v4 = [
         "variableName": "supplierId"
       }
     ],
-    "concreteType": "MaterialsInvoicePayload",
+    "concreteType": "CreateMaterialsInvoicePayload",
     "kind": "LinkedField",
     "name": "createMaterialsInvoice",
     "plural": false,

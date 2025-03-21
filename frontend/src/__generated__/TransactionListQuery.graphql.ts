@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<803ebc50218923e5ac4f1ed8edf36dc1>>
+ * @generated SignedSource<<82d2c9ebf2e60f9ead3f4fe301acd072>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -22,15 +22,15 @@ export type TransactionListQuery$data = {
         readonly id: string;
         readonly invoice: {
           readonly id: string;
-        };
+        } | null;
         readonly transaction_date: string;
-      };
+      } | null;
     } | null> | null;
     readonly pageInfo: {
       readonly endCursor: string | null;
       readonly hasNextPage: boolean;
     };
-  };
+  } | null;
 };
 export type TransactionListQuery = {
   response: TransactionListQuery$data;

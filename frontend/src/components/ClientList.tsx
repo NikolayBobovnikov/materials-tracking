@@ -12,10 +12,10 @@ import {
   Box,
   Button
 } from '@mui/material';
-import type { ClientListQuery } from '../__generated__/ClientListQuery.graphql';
+import type { ClientListQuery } from './../__generated__/ClientListQuery.graphql';
 
 // Define our query
-const clientListQuery = graphql`
+const query = graphql`
   query ClientListQuery($first: Int, $after: String) {
     clients(first: $first, after: $after) {
       edges {
@@ -35,24 +35,21 @@ const clientListQuery = graphql`
 `;
 
 const ClientList: React.FC = () => {
-  const [first, setFirst] = React.useState(10);
+  const [first] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
   
-  const queryData = useLazyLoadQuery<ClientListQuery>(
-    clientListQuery, 
+  const data = useLazyLoadQuery<ClientListQuery>(
+    query, 
     { first, after }
   );
-  
-  // Get the actual response data
-  const data = queryData;
 
-  const loadMore = () => {
-    if (data.clients?.pageInfo.hasNextPage) {
-      setAfter(data.clients.pageInfo.endCursor);
+  const loadMore = (): void => {
+    if (data.response.clients?.pageInfo.hasNextPage) {
+      setAfter(data.response.clients.pageInfo.endCursor);
     }
   };
 
-  if (!data.clients || !data.clients.edges || data.clients.edges.length === 0) {
+  if (!data.response.clients || !data.response.clients.edges || data.response.clients.edges.length === 0) {
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="h6" gutterBottom>Clients</Typography>
@@ -74,7 +71,7 @@ const ClientList: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.clients.edges.map((edge) => {
+            {data.response.clients.edges.map((edge) => {
               if (!edge || !edge.node) return null;
               const node = edge.node;
               return (
@@ -89,7 +86,7 @@ const ClientList: React.FC = () => {
         </Table>
       </TableContainer>
       
-      {data.clients.pageInfo.hasNextPage && (
+      {data.response.clients.pageInfo.hasNextPage && (
         <Button 
           variant="outlined" 
           onClick={loadMore} 

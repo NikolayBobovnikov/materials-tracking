@@ -2,10 +2,10 @@ import React from 'react';
 import { useLazyLoadQuery } from 'react-relay';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box, Button } from '@mui/material';
 import { graphql } from 'react-relay';
-import type { TransactionListQuery } from '../__generated__/TransactionListQuery.graphql';
+import type { TransactionListQuery } from './../__generated__/TransactionListQuery.graphql';
 
 // Use the imported query
-export const TRANSACTION_LIST_QUERY = graphql`
+export const query = graphql`
   query TransactionListQuery($first: Int, $after: String) {
     transactions(first: $first, after: $after) {
       edges {
@@ -28,21 +28,21 @@ export const TRANSACTION_LIST_QUERY = graphql`
 `;
 
 const TransactionList: React.FC = () => {
-  const [first, setFirst] = React.useState(10);
+  const [first] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
 
-  const queryData = useLazyLoadQuery<TransactionListQuery>(TRANSACTION_LIST_QUERY, { first, after });
-  
-  // Get the actual response data
-  const data = queryData;
+  const data = useLazyLoadQuery<TransactionListQuery>(
+    query, 
+    { first, after }
+  );
 
-  const loadMore = () => {
-    if (data.transactions.pageInfo.hasNextPage) {
-      setAfter(data.transactions.pageInfo.endCursor);
+  const loadMore = (): void => {
+    if (data.response.transactions?.pageInfo.hasNextPage) {
+      setAfter(data.response.transactions.pageInfo.endCursor);
     }
   };
 
-  if (!data.transactions || !data.transactions.edges || data.transactions.edges.length === 0) {
+  if (!data.response.transactions || !data.response.transactions.edges || data.response.transactions.edges.length === 0) {
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="h6" gutterBottom>Transactions</Typography>
@@ -65,7 +65,7 @@ const TransactionList: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.transactions.edges.map((edge) => {
+            {data.response.transactions.edges.map((edge) => {
               if (!edge || !edge.node) return null;
               const node = edge.node;
               return (
@@ -81,7 +81,7 @@ const TransactionList: React.FC = () => {
         </Table>
       </TableContainer>
       
-      {data.transactions.pageInfo.hasNextPage && (
+      {data.response.transactions.pageInfo.hasNextPage && (
         <Button 
           variant="outlined" 
           onClick={loadMore} 
