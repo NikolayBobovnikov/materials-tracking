@@ -371,44 +371,66 @@ def resolve_node(_, info, id):
         return None
     return None
 
-# Helper function for connections
-def get_connection(model_class, first=None, after=None):
-    query = model_class.query
+# Refactored resolve_connection function to consolidate pagination logic
+def resolve_connection(model_class, obj=None, info=None, first=None, after=None, **kwargs):
+    """
+    Generic function to resolve GraphQL connections with pagination logic.
     
-    # Implement cursor-based pagination
+    Args:
+        model_class: SQLAlchemy model class to query
+        obj: Parent object for relationships (optional)
+        info: GraphQL resolver info (optional)
+        first: Number of items to fetch
+        after: Cursor to fetch items after
+        **kwargs: Additional filter parameters
+    
+    Returns:
+        A connection object with edges and pageInfo
+    """
+    # Determine the base query
+    if obj is not None:
+        # For relationship fields like client.invoices
+        # Determine the foreign key name based on the related table name
+        foreign_key = f"{obj.__tablename__}_id"
+        query = model_class.query.filter_by(**{foreign_key: obj.id})
+    else:
+        # For root queries
+        query = model_class.query
+    
+    # Apply additional filters if provided
+    if kwargs:
+        query = query.filter_by(**kwargs)
+    
+    # Apply cursor-based pagination if 'after' is provided
     if after:
-        # In a real app, decode the cursor to get the ID
-        # Here, we'll assume the cursor is just the ID
         query = query.filter(model_class.id > after)
     
-    # Limit results
-    if first is not None:
-        query = query.limit(first + 1)  # +1 to check if there's a next page
+    # Apply limit with one extra to check for next page
+    items = query.limit(first + 1 if first else None).all()
     
-    # Execute query
-    items = query.all()
+    # Determine if there is a next page
+    has_next_page = first is not None and len(items) > first
     
-    # Check if there's a next page
-    has_next_page = False
-    if first is not None and len(items) > first:
-        has_next_page = True
-        items = items[:first]
+    # Create edge objects for the items (slicing if first is provided)
+    if first:
+        filtered_items = items[:first]
+    else:
+        filtered_items = items
+        
+    edges = [
+        {
+            "node": item, 
+            "cursor": str(item.id)
+        } 
+        for item in filtered_items
+    ]
     
-    # Create edges
-    edges = []
-    for item in items:
-        # In a real app, encode the cursor
-        cursor = str(item.id)
-        edges.append({"node": item, "cursor": cursor})
-    
-    # Create page info
-    start_cursor = edges[0]["cursor"] if edges else None
-    end_cursor = edges[-1]["cursor"] if edges else None
+    # Construct pageInfo
     page_info = {
         "hasNextPage": has_next_page,
         "hasPreviousPage": after is not None,
-        "startCursor": start_cursor,
-        "endCursor": end_cursor
+        "startCursor": edges[0]["cursor"] if edges else None,
+        "endCursor": edges[-1]["cursor"] if edges else None
     }
     
     return {
@@ -416,138 +438,38 @@ def get_connection(model_class, first=None, after=None):
         "pageInfo": page_info
     }
 
-# Connection resolvers
+# Replace individual connection resolvers with the generic function
 @query.field("clients")
 def resolve_clients(_, info, first=None, after=None):
-    return get_connection(Client, first, after)
+    return resolve_connection(Client, first=first, after=after)
 
 @query.field("suppliers")
 def resolve_suppliers(_, info, first=None, after=None):
-    return get_connection(Supplier, first, after)
+    return resolve_connection(Supplier, first=first, after=after)
 
 @query.field("invoices")
 def resolve_invoices(_, info, first=None, after=None):
-    return get_connection(MaterialsInvoice, first, after)
+    return resolve_connection(MaterialsInvoice, first=first, after=after)
 
 @query.field("transactions")
 def resolve_transactions(_, info, first=None, after=None):
-    return get_connection(Transaction, first, after)
+    return resolve_connection(Transaction, first=first, after=after)
 
 @query.field("debts")
 def resolve_debts(_, info, first=None, after=None):
-    return get_connection(Debt, first, after)
+    return resolve_connection(Debt, first=first, after=after)
 
-# Relation connection resolvers
 @client.field("invoices")
 def resolve_client_invoices(obj, info, first=None, after=None):
-    query = MaterialsInvoice.query.filter_by(client_id=obj.id)
-    
-    # Apply pagination similar to get_connection
-    if after:
-        query = query.filter(MaterialsInvoice.id > after)
-    
-    if first is not None:
-        query = query.limit(first + 1)
-    
-    items = query.all()
-    
-    has_next_page = False
-    if first is not None and len(items) > first:
-        has_next_page = True
-        items = items[:first]
-    
-    edges = []
-    for item in items:
-        cursor = str(item.id)
-        edges.append({"node": item, "cursor": cursor})
-    
-    start_cursor = edges[0]["cursor"] if edges else None
-    end_cursor = edges[-1]["cursor"] if edges else None
-    page_info = {
-        "hasNextPage": has_next_page,
-        "hasPreviousPage": after is not None,
-        "startCursor": start_cursor,
-        "endCursor": end_cursor
-    }
-    
-    return {
-        "edges": edges,
-        "pageInfo": page_info
-    }
+    return resolve_connection(MaterialsInvoice, obj=obj, first=first, after=after)
 
 @supplier.field("invoices")
 def resolve_supplier_invoices(obj, info, first=None, after=None):
-    query = MaterialsInvoice.query.filter_by(supplier_id=obj.id)
-    
-    # Apply pagination similar to get_connection
-    if after:
-        query = query.filter(MaterialsInvoice.id > after)
-    
-    if first is not None:
-        query = query.limit(first + 1)
-    
-    items = query.all()
-    
-    has_next_page = False
-    if first is not None and len(items) > first:
-        has_next_page = True
-        items = items[:first]
-    
-    edges = []
-    for item in items:
-        cursor = str(item.id)
-        edges.append({"node": item, "cursor": cursor})
-    
-    start_cursor = edges[0]["cursor"] if edges else None
-    end_cursor = edges[-1]["cursor"] if edges else None
-    page_info = {
-        "hasNextPage": has_next_page,
-        "hasPreviousPage": after is not None,
-        "startCursor": start_cursor,
-        "endCursor": end_cursor
-    }
-    
-    return {
-        "edges": edges,
-        "pageInfo": page_info
-    }
+    return resolve_connection(MaterialsInvoice, obj=obj, first=first, after=after)
 
 @materials_invoice.field("debts")
 def resolve_invoice_debts(obj, info, first=None, after=None):
-    query = Debt.query.filter_by(invoice_id=obj.id)
-    
-    # Apply pagination similar to get_connection
-    if after:
-        query = query.filter(Debt.id > after)
-    
-    if first is not None:
-        query = query.limit(first + 1)
-    
-    items = query.all()
-    
-    has_next_page = False
-    if first is not None and len(items) > first:
-        has_next_page = True
-        items = items[:first]
-    
-    edges = []
-    for item in items:
-        cursor = str(item.id)
-        edges.append({"node": item, "cursor": cursor})
-    
-    start_cursor = edges[0]["cursor"] if edges else None
-    end_cursor = edges[-1]["cursor"] if edges else None
-    page_info = {
-        "hasNextPage": has_next_page,
-        "hasPreviousPage": after is not None,
-        "startCursor": start_cursor,
-        "endCursor": end_cursor
-    }
-    
-    return {
-        "edges": edges,
-        "pageInfo": page_info
-    }
+    return resolve_connection(Debt, obj=obj, first=first, after=after)
 
 # Create executable schema
 schema = make_executable_schema(

@@ -1,10 +1,10 @@
 import React from 'react';
-import { useLazyLoadQuery } from 'react-relay';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box, Button } from '@mui/material';
 import { graphql } from 'react-relay';
+import { TableRow, TableCell } from '@mui/material';
 import type { DebtListQuery } from './../__generated__/DebtListQuery.graphql';
+import PaginatedList from './PaginatedList';
 
-// Use the imported query
+// Define the query
 export const query = graphql`
   query DebtListQuery($first: Int, $after: String) {
     debts(first: $first, after: $after) {
@@ -28,73 +28,35 @@ export const query = graphql`
   }
 `;
 
-const DebtList: React.FC = () => {
-  const [first] = React.useState(10);
-  const [after, setAfter] = React.useState<string | null>(null);
-
-  const data = useLazyLoadQuery<DebtListQuery['response']>(
-    query, 
-    { first, after }
-  );
-
-  const loadMore = (): void => {
-    const debts = data.debts;
-    if (debts?.pageInfo.hasNextPage) {
-      setAfter(debts.pageInfo.endCursor);
-    }
+// Define the node type
+type DebtNode = {
+  id: string;
+  party: string;
+  amount: number;
+  created_date: string;
+  invoice?: {
+    id: string;
   };
+};
 
-  if (!data.debts || !data.debts.edges || data.debts.edges.length === 0) {
-    return (
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="h6" gutterBottom>Debts</Typography>
-        <Typography>No debts found.</Typography>
-      </Box>
-    );
-  }
-
+const DebtList: React.FC = () => {
   return (
-    <Box sx={{ mt: 2 }}>
-      <Typography variant="h6" gutterBottom>Debts</Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Debt ID</TableCell>
-              <TableCell>Party</TableCell>
-              <TableCell>Amount</TableCell>
-              <TableCell>Created Date</TableCell>
-              <TableCell>Invoice ID</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.debts.edges.map((edge) => {
-              if (!edge || !edge.node) return null;
-              const node = edge.node;
-              return (
-                <TableRow key={node.id}>
-                  <TableCell>{node.id}</TableCell>
-                  <TableCell>{node.party}</TableCell>
-                  <TableCell>{node.amount}</TableCell>
-                  <TableCell>{node.created_date}</TableCell>
-                  <TableCell>{node.invoice?.id}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      
-      {data.debts.pageInfo.hasNextPage && (
-        <Button 
-          variant="outlined" 
-          onClick={loadMore} 
-          sx={{ mt: 2 }}
-        >
-          Load More
-        </Button>
+    <PaginatedList<DebtNode, DebtListQuery['response']>
+      query={query}
+      variables={{ first: 10 }}
+      title="Debts"
+      headers={["Debt ID", "Party", "Amount", "Created Date", "Invoice ID"]}
+      connectionPath="debts"
+      renderRow={(node) => (
+        <TableRow key={node.id}>
+          <TableCell>{node.id}</TableCell>
+          <TableCell>{node.party}</TableCell>
+          <TableCell>{node.amount}</TableCell>
+          <TableCell>{node.created_date}</TableCell>
+          <TableCell>{node.invoice?.id}</TableCell>
+        </TableRow>
       )}
-    </Box>
+    />
   );
 };
 

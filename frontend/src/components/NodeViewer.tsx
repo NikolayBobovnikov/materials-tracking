@@ -1,82 +1,93 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, Paper, Divider } from '@mui/material';
+import { graphql, useLazyLoadQuery } from 'react-relay';
 import { toGlobalId } from '../RelayEnvironment';
 
+// Define the query for node fetching
+const nodeQuery = graphql`
+  query NodeViewerQuery($id: ID!) {
+    node(id: $id) {
+      id
+      ... on Client {
+        name
+        markup_rate
+      }
+      ... on Supplier {
+        name
+      }
+      ... on MaterialsInvoice {
+        base_amount
+        status
+        invoice_date
+      }
+      ... on Transaction {
+        amount
+        transaction_date
+      }
+      ... on Debt {
+        party
+        amount
+        created_date
+      }
+    }
+  }
+`;
+
+// Define interfaces for the node data
 interface NodeData {
   id: string;
   [key: string]: unknown;
 }
 
+// Define query response type
+interface NodeViewerQueryResponse {
+  node: NodeData | null;
+}
+
+// Separate component for fetching data
+const NodeDataDisplay: React.FC<{ id: string }> = ({ id }) => {
+  const data = useLazyLoadQuery<NodeViewerQueryResponse>(
+    nodeQuery, 
+    { id }
+  );
+  
+  if (!data || !data.node) {
+    return (
+      <Typography color="error" sx={{ mb: 2 }}>
+        No node found with ID: {id}
+      </Typography>
+    );
+  }
+  
+  return (
+    <Paper elevation={1} sx={{ p: 2 }}>
+      <Typography variant="subtitle1" gutterBottom>
+        Node Data:
+      </Typography>
+      <pre>
+        {JSON.stringify(data.node, null, 2)}
+      </pre>
+    </Paper>
+  );
+};
+
 const NodeViewer: React.FC = () => {
   const [nodeId, setNodeId] = useState('');
   const [nodeType, setNodeType] = useState('Client');
-  const [fetchedData, setFetchedData] = useState<NodeData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [fetchedId, setFetchedId] = useState<string | null>(null);
   
+  // Create a global ID using the function from RelayEnvironment
   const globalId = nodeId ? toGlobalId(nodeType, nodeId) : '';
   
-  const handleFetchNode = async (): Promise<void> => {
+  const handleFetchNode = (): void => {
     if (!globalId) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch('http://localhost:5000/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            query {
-              node(id: "${globalId}") {
-                id
-                ... on Client {
-                  name
-                  markup_rate
-                }
-                ... on Supplier {
-                  name
-                }
-                ... on MaterialsInvoice {
-                  base_amount
-                  status
-                  invoice_date
-                }
-                ... on Transaction {
-                  amount
-                  transaction_date
-                }
-                ... on Debt {
-                  party
-                  amount
-                  created_date
-                }
-              }
-            }
-          `
-        }),
-      });
-      
-      const result = await response.json();
-      
-      if (result.errors) {
-        setError(result.errors[0].message);
-        setFetchedData(null);
-      } else if (result.data && result.data.node) {
-        setFetchedData(result.data.node);
-      } else {
-        setError(`No node found with ID: ${globalId}`);
-        setFetchedData(null);
-      }
-    } catch (err) {
-      setError('Error fetching data: ' + (err instanceof Error ? err.message : String(err)));
-      setFetchedData(null);
-    } finally {
-      setLoading(false);
-    }
+    setFetchedId(globalId);
+  };
+  
+  const resetForm = (): void => {
+    setNodeId('');
+    setNodeType('Client');
+    setFetchedId(null);
   };
   
   return (
@@ -90,7 +101,10 @@ const NodeViewer: React.FC = () => {
           select
           label="Node Type"
           value={nodeType}
-          onChange={(e) => setNodeType(e.target.value)}
+          onChange={(e) => {
+            setNodeType(e.target.value);
+            setFetchedId(null);
+          }}
           SelectProps={{
             native: true,
           }}
@@ -106,17 +120,29 @@ const NodeViewer: React.FC = () => {
         <TextField
           label="ID"
           value={nodeId}
-          onChange={(e) => setNodeId(e.target.value)}
+          onChange={(e) => {
+            setNodeId(e.target.value);
+            setFetchedId(null);
+          }}
           sx={{ flexGrow: 1 }}
         />
         
         <Button 
           variant="contained" 
           onClick={handleFetchNode}
-          disabled={!nodeId || loading}
+          disabled={!nodeId}
         >
-          {loading ? 'Loading...' : 'Fetch Node'}
+          Fetch Node
         </Button>
+        
+        {fetchedId && (
+          <Button 
+            variant="outlined" 
+            onClick={resetForm}
+          >
+            Reset
+          </Button>
+        )}
       </Box>
       
       {globalId && (
@@ -127,22 +153,7 @@ const NodeViewer: React.FC = () => {
       
       <Divider sx={{ my: 2 }} />
       
-      {error && (
-        <Typography color="error" sx={{ mb: 2 }}>
-          {error}
-        </Typography>
-      )}
-      
-      {fetchedData && (
-        <Paper elevation={1} sx={{ p: 2 }}>
-          <Typography variant="subtitle1" gutterBottom>
-            Node Data:
-          </Typography>
-          <pre>
-            {JSON.stringify(fetchedData, null, 2)}
-          </pre>
-        </Paper>
-      )}
+      {fetchedId && <NodeDataDisplay id={fetchedId} />}
     </Box>
   );
 };

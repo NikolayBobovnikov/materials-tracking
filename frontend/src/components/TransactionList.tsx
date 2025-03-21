@@ -1,10 +1,10 @@
 import React from 'react';
-import { useLazyLoadQuery } from 'react-relay';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box, Button } from '@mui/material';
 import { graphql } from 'react-relay';
+import { TableRow, TableCell } from '@mui/material';
 import type { TransactionListQuery } from './../__generated__/TransactionListQuery.graphql';
+import PaginatedList from './PaginatedList';
 
-// Use the imported query
+// Define the query
 export const query = graphql`
   query TransactionListQuery($first: Int, $after: String) {
     transactions(first: $first, after: $after) {
@@ -27,70 +27,33 @@ export const query = graphql`
   }
 `;
 
-const TransactionList: React.FC = () => {
-  const [first] = React.useState(10);
-  const [after, setAfter] = React.useState<string | null>(null);
-
-  const data = useLazyLoadQuery<TransactionListQuery['response']>(
-    query, 
-    { first, after }
-  );
-
-  const loadMore = (): void => {
-    if (data.transactions?.pageInfo.hasNextPage) {
-      setAfter(data.transactions.pageInfo.endCursor);
-    }
+// Define the node type
+type TransactionNode = {
+  id: string;
+  amount: number;
+  transaction_date: string;
+  invoice?: {
+    id: string;
   };
+};
 
-  if (!data.transactions || !data.transactions.edges || data.transactions.edges.length === 0) {
-    return (
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="h6" gutterBottom>Transactions</Typography>
-        <Typography>No transactions found.</Typography>
-      </Box>
-    );
-  }
-
+const TransactionList: React.FC = () => {
   return (
-    <Box sx={{ mt: 2 }}>
-      <Typography variant="h6" gutterBottom>Transactions</Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Transaction ID</TableCell>
-              <TableCell>Amount</TableCell>
-              <TableCell>Transaction Date</TableCell>
-              <TableCell>Invoice ID</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.transactions.edges.map((edge) => {
-              if (!edge || !edge.node) return null;
-              const node = edge.node;
-              return (
-                <TableRow key={node.id}>
-                  <TableCell>{node.id}</TableCell>
-                  <TableCell>{node.amount}</TableCell>
-                  <TableCell>{node.transaction_date}</TableCell>
-                  <TableCell>{node.invoice?.id}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      
-      {data.transactions.pageInfo.hasNextPage && (
-        <Button 
-          variant="outlined" 
-          onClick={loadMore} 
-          sx={{ mt: 2 }}
-        >
-          Load More
-        </Button>
+    <PaginatedList<TransactionNode, TransactionListQuery['response']>
+      query={query}
+      variables={{ first: 10 }}
+      title="Transactions"
+      headers={["Transaction ID", "Amount", "Transaction Date", "Invoice ID"]}
+      connectionPath="transactions"
+      renderRow={(node) => (
+        <TableRow key={node.id}>
+          <TableCell>{node.id}</TableCell>
+          <TableCell>{node.amount}</TableCell>
+          <TableCell>{node.transaction_date}</TableCell>
+          <TableCell>{node.invoice?.id}</TableCell>
+        </TableRow>
       )}
-    </Box>
+    />
   );
 };
 
