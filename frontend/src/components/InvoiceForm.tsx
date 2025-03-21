@@ -1,9 +1,9 @@
 import React from 'react';
 import { TextField, Button, Box, CircularProgress, MenuItem } from '@mui/material';
 import { useForm } from 'react-hook-form';
+import { graphql, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { createInvoice, CreateMaterialsInvoiceMutationResponse } from '../mutations/CreateMaterialsInvoice';
-import { useRelayEnvironment } from 'react-relay';
-import { graphql, useLazyLoadQuery } from 'react-relay';
+import { InvoiceFormClientsSuppliersQuery } from '../__generated__/InvoiceFormClientsSuppliersQuery.graphql';
 
 // Add type definitions for the query response
 type ClientNode = {
@@ -85,12 +85,12 @@ const InvoiceForm: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
   
   // Load clients and suppliers data
-  const queryData = useLazyLoadQuery<QueryResponse>(
+  const queryData = useLazyLoadQuery<InvoiceFormClientsSuppliersQuery>(
     ALL_CLIENTS_SUPPLIERS_QUERY, 
     { clientsFirst: 50, suppliersFirst: 50 }
   );
-  const clientsList = queryData.clients?.edges.map((e: {node: ClientNode; cursor: string}) => e.node) || [];
-  const suppliersList = queryData.suppliers?.edges.map((e: {node: SupplierNode; cursor: string}) => e.node) || [];
+  const clientsList = queryData.clients?.edges?.map((e: {node: ClientNode; cursor: string} | null) => e?.node) || [];
+  const suppliersList = queryData.suppliers?.edges?.map((e: {node: SupplierNode; cursor: string} | null) => e?.node) || [];
 
   const onSubmit = async (formData: InvoiceFormInputs) => {
     setLoading(true);
@@ -105,7 +105,7 @@ const InvoiceForm: React.FC = () => {
         invoiceDate: formData.invoiceDate,
         baseAmount: parseFloat(formData.baseAmount.toString()),
       },
-      (resp: CreateMaterialsInvoiceMutationResponse) => {
+      (resp: any, errors) => {
         setLoading(false);
         
         if (resp.createMaterialsInvoice.errors && resp.createMaterialsInvoice.errors.length > 0) {
@@ -145,11 +145,14 @@ const InvoiceForm: React.FC = () => {
         {...register("clientGlobalId", { required: true })}
         className="mb-4"
       >
-        {clientsList.map((c: ClientNode) => (
-          <MenuItem key={c.id} value={c.id}>
-            {c.name}
-          </MenuItem>
-        ))}
+        {clientsList.map((c: ClientNode | undefined) => {
+          if (!c) return null;
+          return (
+            <MenuItem key={c.id} value={c.id}>
+              {c.name}
+            </MenuItem>
+          );
+        })}
       </TextField>
       
       <TextField
@@ -163,11 +166,14 @@ const InvoiceForm: React.FC = () => {
         {...register("supplierGlobalId", { required: true })}
         className="mb-4"
       >
-        {suppliersList.map((s: SupplierNode) => (
-          <MenuItem key={s.id} value={s.id}>
-            {s.name}
-          </MenuItem>
-        ))}
+        {suppliersList.map((s: SupplierNode | undefined) => {
+          if (!s) return null;
+          return (
+            <MenuItem key={s.id} value={s.id}>
+              {s.name}
+            </MenuItem>
+          );
+        })}
       </TextField>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -35,7 +35,7 @@ const DebtList: React.FC = () => {
   const queryData = useLazyLoadQuery<DebtListQuery>(DEBT_LIST_QUERY, { first, after });
   
   // Get the actual response data
-  const data = queryData.response;
+  const data = queryData;
 
   const loadMore = () => {
     if (data.debts.pageInfo.hasNextPage) {

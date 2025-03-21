@@ -44,7 +44,7 @@ const ClientList: React.FC = () => {
   );
   
   // Get the actual response data
-  const data = queryData.response;
+  const data = queryData;
 
   const loadMore = () => {
     if (data.clients?.pageInfo.hasNextPage) {

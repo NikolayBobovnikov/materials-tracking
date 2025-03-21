@@ -34,7 +34,7 @@ const TransactionList: React.FC = () => {
   const queryData = useLazyLoadQuery<TransactionListQuery>(TRANSACTION_LIST_QUERY, { first, after });
   
   // Get the actual response data
-  const data = queryData.response;
+  const data = queryData;
 
   const loadMore = () => {
     if (data.transactions.pageInfo.hasNextPage) {
