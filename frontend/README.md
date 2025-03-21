@@ -1,3 +1,148 @@
+# Frontend Application
+
+This is a React application using Relay and TypeScript for enhanced type safety and consistent builds.
+
+## Development Setup
+
+### Prerequisites
+
+- Node.js v18.15.0 (use [nvm](https://github.com/nvm-sh/nvm) or [nvm-windows](https://github.com/coreybutler/nvm-windows) to manage Node.js versions)
+- npm v9.x
+- Docker (for local Docker builds)
+
+### Installation
+
+```bash
+# Install dependencies
+npm ci
+```
+
+### Development Server
+
+```bash
+# Start the development server
+npm start
+```
+
+The application will be available at http://localhost:3000.
+
+## Build & Testing
+
+### Standard Build
+
+```bash
+# Build the application
+npm run build
+```
+
+This runs through the following steps:
+1. Fix import paths in test files
+2. TypeScript type check
+3. ESLint check
+4. Relay compiler
+5. Production build
+
+### Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests once
+npm test -- --watchAll=false
+```
+
+### Type Checking
+
+```bash
+# Basic type checking
+npm run type-check
+
+# Enhanced type checking (includes generated Relay types)
+npm run type-check-all
+```
+
+### Linting
+
+```bash
+# Run ESLint
+npm run lint
+```
+
+## Docker Builds
+
+To ensure consistent builds across environments, you can use Docker:
+
+### Prerequisites
+
+- Docker installed and running
+- Docker daemon available
+
+### Building with Docker
+
+For Windows:
+```bash
+npm run docker-build-win
+```
+
+For macOS/Linux:
+```bash
+npm run docker-build
+```
+
+These scripts will:
+1. Build the Docker image using the Dockerfile
+2. Run tests in the container (optional)
+3. Serve the built application (optional)
+
+### Running the Docker Container
+
+```bash
+# Build and run the container
+docker build -t frontend-build .
+docker run -p 8080:80 frontend-build
+```
+
+The application will be available at http://localhost:8080.
+
+## Deployment
+
+```bash
+# Deploy the application
+npm run deploy
+```
+
+## Important Type Safety Features
+
+This project includes several features to ensure type safety:
+
+1. ResponseType utility for Relay types
+2. Runtime data validators
+3. TypeScript strict mode
+4. Type tests for GraphQL queries and mutations
+5. Automatic import path fixing
+6. Docker-based consistent builds
+
+For a complete list of type safety improvements, see [TYPE-SAFETY-IMPROVEMENTS.md](./docs/TYPE-SAFETY-IMPROVEMENTS.md).
+
+## Project Structure
+
+```
+.
+├── docs/                  # Documentation
+├── public/                # Static files
+├── scripts/               # Build and utility scripts
+├── src/
+│   ├── __generated__/     # Relay generated types
+│   ├── components/        # React components
+│   ├── utils/             # Utility functions
+│   └── ...
+├── Dockerfile             # Docker configuration
+├── nginx.conf             # Nginx configuration for production
+├── tsconfig.json          # TypeScript configuration
+└── ...
+```
+
 # React Relay Frontend
 
 This is the frontend for the Materials Tracking Module.

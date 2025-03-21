@@ -43,13 +43,14 @@ function createTypeTestFiles() {
     const baseName = path.basename(file, '.graphql.ts');
     const importPath = path.join(
       path.relative(testDir, path.join(__dirname, '..')), 
-      'src', '__generated__', file.replace('.ts', '')
-    );
+      'src', '__generated__', baseName + '.graphql'
+    ).replace(/\\/g, '/');
     
     // Create a test file that imports and uses the types
+    // Important: don't add .ts extension to the import to avoid TS errors
     const testContent = `
 // Auto-generated test file for ${baseName}
-import type { ${baseName} } from '${importPath.replace(/\\/g, '/')}';
+import type { ${baseName} } from '${importPath}';
 
 // Test that we can use the response property
 type TestResponseType = ${baseName}['response'];
@@ -80,8 +81,44 @@ function cleanupTestFiles(testDir) {
 // Ensure imports in test files use correct format
 function fixTestImportPaths() {
   console.log('\n🔧 Checking for any test files with incorrect import paths...');
-  // Invoke the fix-test-imports script
-  runCommand('node', [path.join(__dirname, 'fix-test-imports.js')]);
+  
+  // Look for the __type_tests__ directory
+  const typeTestsDir = path.join(__dirname, '..', 'src', '__type_tests__');
+  if (!fs.existsSync(typeTestsDir)) {
+    console.log('No __type_tests__ directory found. Nothing to fix.');
+    return;
+  }
+  
+  // Get all test files in the directory
+  const files = fs.readdirSync(typeTestsDir)
+    .filter(file => file.endsWith('.ts') || file.endsWith('.tsx'));
+  
+  if (files.length === 0) {
+    console.log('No test files found in __type_tests__ directory. Nothing to fix.');
+    return;
+  }
+  
+  console.log(`Found ${files.length} test files to fix.`);
+  
+  // Process each file
+  let fixedCount = 0;
+  for (const file of files) {
+    const filePath = path.join(typeTestsDir, file);
+    let content = fs.readFileSync(filePath, 'utf8');
+    
+    // Fix the imports by removing the .ts extension
+    const fixedContent = content.replace(/\.graphql\.ts(['"])/g, '.graphql$1');
+    
+    if (content !== fixedContent) {
+      fs.writeFileSync(filePath, fixedContent);
+      console.log(`Fixed imports in ${file}`);
+      fixedCount++;
+    } else {
+      console.log(`No changes needed in ${file}`);
+    }
+  }
+  
+  console.log(`\nFixed imports in ${fixedCount} files.`);
 }
 
 // Main function

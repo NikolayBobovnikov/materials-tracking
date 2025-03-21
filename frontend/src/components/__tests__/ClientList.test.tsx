@@ -2,23 +2,9 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import ClientList from '../ClientList';
 import { useLazyLoadQuery } from 'react-relay';
+import type { ClientListQuery } from '../../__generated__/ClientListQuery.graphql';
 
-// Mock the generated type structure
-jest.mock('../../__generated__/ClientListQuery.graphql', () => ({
-  ClientListQuery: {
-    response: {
-      clients: {
-        edges: [
-          {
-            node: { id: '1', name: 'Test Client', markup_rate: 1.5 },
-            cursor: 'cursor1'
-          }
-        ],
-        pageInfo: { hasNextPage: false, endCursor: null }
-      }
-    }
-  }
-}));
+// No need to mock the types - we import them directly
 
 // Mock relay hooks
 jest.mock('react-relay', () => ({
@@ -32,28 +18,35 @@ describe('ClientList', () => {
   });
 
   it('handles Relay data correctly', () => {
-    // Mock the return value of useLazyLoadQuery
-    (useLazyLoadQuery as jest.Mock).mockReturnValue({
+    // Mock the return value of useLazyLoadQuery with the actual type
+    const mockData: ClientListQuery['response'] = {
       clients: {
         edges: [
-          { node: { id: '1', name: 'Test Client', markup_rate: 1.5 }, cursor: 'cursor1' }
+          { 
+            node: { id: '1', name: 'Test Client', markup_rate: 1.5 }, 
+            cursor: 'cursor1' 
+          }
         ],
         pageInfo: { hasNextPage: false, endCursor: null }
       }
-    });
+    };
+    
+    (useLazyLoadQuery as jest.Mock).mockReturnValue(mockData);
     
     const { container } = render(<ClientList />);
     expect(container).toMatchSnapshot();
   });
 
   it('calls useLazyLoadQuery with correct parameters', () => {
-    // Mock the return value
-    (useLazyLoadQuery as jest.Mock).mockReturnValue({
+    // Mock the return value with the actual type
+    const mockData: ClientListQuery['response'] = {
       clients: {
         edges: [],
         pageInfo: { hasNextPage: false, endCursor: null }
       }
-    });
+    };
+    
+    (useLazyLoadQuery as jest.Mock).mockReturnValue(mockData);
     
     render(<ClientList />);
     
@@ -61,7 +54,7 @@ describe('ClientList', () => {
     expect(useLazyLoadQuery).toHaveBeenCalled();
     
     // The second argument should be an object with first and after properties
-    const secondArg = (useLazyLoadQuery as jest.Mock).mock.calls[0][1];
+    const secondArg = (useLazyLoadQuery as jest.Mock).mock.calls[0][1] as ClientListQuery['variables'];
     expect(secondArg).toHaveProperty('first');
     expect(typeof secondArg.first).toBe('number');
     

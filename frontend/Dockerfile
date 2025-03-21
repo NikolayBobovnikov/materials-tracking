@@ -6,6 +6,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
+# Ensure exact TypeScript version
+RUN npm list typescript || true
+RUN npm install -D typescript@4.9.5
+
 # Copy the rest of the application
 COPY . .
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * This script fixes imports in the type test files by removing the .ts extension
+ * This script fixes imports in test files by removing the .ts extension
  * from imports, which causes TypeScript errors during build.
  */
 
@@ -9,60 +9,81 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-// Get the list of files to fix
-const typeTestsDir = path.join(__dirname, '..', 'src', '__type_tests__');
+// Function to recursively get all test files in a directory
+function getAllTestFiles(dir) {
+  let results = [];
+  const list = fs.readdirSync(dir);
+  
+  list.forEach(file => {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+    
+    if (stat.isDirectory()) {
+      // Recursively get files from subdirectories, but skip node_modules and build
+      if (file !== 'node_modules' && file !== 'build') {
+        results = results.concat(getAllTestFiles(filePath));
+      }
+    } else if (
+      (file.endsWith('.test.ts') || file.endsWith('.test.tsx')) && 
+      !file.includes('setupTests')
+    ) {
+      results.push(filePath);
+    }
+  });
+  
+  return results;
+}
 
-if (!fs.existsSync(typeTestsDir)) {
-  console.log('🔍 No __type_tests__ directory found. Nothing to fix.');
+// Get all test files in the src directory
+console.log('🔍 Scanning for test files to fix import paths...');
+const srcDir = path.join(__dirname, '..', 'src');
+const testFiles = getAllTestFiles(srcDir);
+
+if (testFiles.length === 0) {
+  console.log('🔍 No test files found. Nothing to fix.');
   process.exit(0);
 }
 
-// Get all test files in the directory
-const files = fs.readdirSync(typeTestsDir)
-  .filter(file => file.endsWith('.ts') || file.endsWith('.tsx'));
-
-if (files.length === 0) {
-  console.log('🔍 No test files found in __type_tests__ directory. Nothing to fix.');
-  process.exit(0);
-}
-
-console.log(`🔧 Found ${files.length} test files to fix.`);
+console.log(`🔧 Found ${testFiles.length} test files to check.`);
 
 // Process each file
 let fixedCount = 0;
-for (const file of files) {
-  const filePath = path.join(typeTestsDir, file);
+for (const filePath of testFiles) {
   let content = fs.readFileSync(filePath, 'utf8');
+  const relativePath = path.relative(srcDir, filePath);
   
   // Fix the imports by removing the .ts extension
-  const fixedContent = content.replace(/\.graphql\.ts(['"])/g, '.graphql$1');
+  // This pattern targets .graphql.ts, .tsx, and .ts extensions in imports
+  const fixedContent = content
+    .replace(/\.graphql\.ts(['"])/g, '.graphql$1')
+    .replace(/(from\s+['"].*?)\.tsx?(['"])/g, '$1$2');
   
   if (content !== fixedContent) {
     fs.writeFileSync(filePath, fixedContent);
-    console.log(`✅ Fixed imports in ${file}`);
+    console.log(`✅ Fixed imports in ${relativePath}`);
     fixedCount++;
-  } else {
-    console.log(`ℹ️ No changes needed in ${file}`);
   }
 }
 
 console.log(`\n🎉 Fixed imports in ${fixedCount} files.`);
 
 // Run the build again to see if fixes worked
-console.log('\n🏗️ Running TypeScript check to verify fixes...');
-try {
-  const result = spawnSync('npx', ['tsc', '--noEmit'], { 
-    stdio: 'inherit',
-    shell: process.platform === 'win32'
-  });
-  
-  if (result.status === 0) {
-    console.log('\n✅ TypeScript check passed successfully!');
-  } else {
-    console.error('\n❌ TypeScript check still has errors. Please check the output above.');
+if (fixedCount > 0) {
+  console.log('\n🏗️ Running TypeScript check to verify fixes...');
+  try {
+    const result = spawnSync('npx', ['tsc', '--noEmit'], { 
+      stdio: 'inherit',
+      shell: process.platform === 'win32'
+    });
+    
+    if (result.status === 0) {
+      console.log('\n✅ TypeScript check passed successfully!');
+    } else {
+      console.error('\n❌ TypeScript check still has errors. Please check the output above.');
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error('\n❌ Error running TypeScript check:', error);
     process.exit(1);
   }
-} catch (error) {
-  console.error('\n❌ Error running TypeScript check:', error);
-  process.exit(1);
 } 

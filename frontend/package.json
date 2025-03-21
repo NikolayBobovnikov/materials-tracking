@@ -29,7 +29,7 @@
   },
   "scripts": {
     "start": "npm run relay && craco start",
-    "build": "npm run type-check && npm run lint && npm run relay && craco build",
+    "build": "npm run fix-test-imports && npm run type-check && npm run lint && npm run relay && craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
     "relay": "relay-compiler",
@@ -37,7 +37,9 @@
     "type-check-all": "node scripts/type-check-all.js",
     "fix-test-imports": "node scripts/fix-test-imports.js",
     "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
-    "deploy": "bash scripts/deploy.sh"
+    "deploy": "bash scripts/deploy.sh",
+    "docker-build": "scripts/docker-build.sh",
+    "docker-build-win": "powershell -ExecutionPolicy Bypass -File scripts/docker-build.ps1"
   },
   "eslintConfig": {
     "extends": [
