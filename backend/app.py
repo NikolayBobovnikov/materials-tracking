@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_cors import CORS
-from backend.models import db
+from models import db
 import logging
 from ariadne.asgi import GraphQL
 # Use the HTML directly instead of importing from constants
@@ -82,7 +82,7 @@ PLAYGROUND_HTML = """
 </body>
 </html>
 """
-from backend.schema import schema
+from schema import schema
 
 def create_app():
     # Configure logging

@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 import logging
 from decimal import Decimal
 
-from backend.models import db, Client, Supplier, MaterialsInvoice, Transaction, Debt, InvoiceStatus
+from models import db, Client, Supplier, MaterialsInvoice, Transaction, Debt, InvoiceStatus
 
 # Get logger
 logger = logging.getLogger(__name__)
