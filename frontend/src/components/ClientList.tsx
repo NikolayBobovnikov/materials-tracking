@@ -12,7 +12,7 @@ import {
   Box,
   Button
 } from '@mui/material';
-import type { ClientListQuery$data } from '../__generated__/ClientListQuery.graphql';
+import type { ClientListQuery } from '../__generated__/ClientListQuery.graphql';
 
 // Define our query
 const clientListQuery = graphql`
@@ -38,10 +38,13 @@ const ClientList: React.FC = () => {
   const [first, setFirst] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
   
-  const data = useLazyLoadQuery<ClientListQuery$data>(
+  const queryData = useLazyLoadQuery<ClientListQuery>(
     clientListQuery, 
     { first, after }
   );
+  
+  // Get the actual response data
+  const data = queryData.response;
 
   const loadMore = () => {
     if (data.clients?.pageInfo.hasNextPage) {

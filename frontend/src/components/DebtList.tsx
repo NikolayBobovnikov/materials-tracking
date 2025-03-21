@@ -2,7 +2,7 @@ import React from 'react';
 import { useLazyLoadQuery } from 'react-relay';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box, Button } from '@mui/material';
 import { graphql } from 'react-relay';
-import type { DebtListQuery$data } from '../__generated__/DebtListQuery.graphql';
+import type { DebtListQuery } from '../__generated__/DebtListQuery.graphql';
 
 // Use the imported query
 export const DEBT_LIST_QUERY = graphql`
@@ -32,7 +32,10 @@ const DebtList: React.FC = () => {
   const [first, setFirst] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
 
-  const data = useLazyLoadQuery<DebtListQuery$data>(DEBT_LIST_QUERY, { first, after });
+  const queryData = useLazyLoadQuery<DebtListQuery>(DEBT_LIST_QUERY, { first, after });
+  
+  // Get the actual response data
+  const data = queryData.response;
 
   const loadMore = () => {
     if (data.debts.pageInfo.hasNextPage) {
