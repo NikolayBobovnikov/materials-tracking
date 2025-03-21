@@ -27,7 +27,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from models import db
 import logging
-from ariadne.asgi import GraphQL
+from ariadne import graphql_sync
 # Use the HTML directly instead of importing from constants
 PLAYGROUND_HTML = """
 <!DOCTYPE html>
@@ -119,9 +119,9 @@ def create_app():
         # Handle GraphQL queries
         data = request.get_json()
         
-        success, result = schema.execute_sync(
-            data["query"],
-            variable_values=data.get("variables"),
+        success, result = graphql_sync(
+            schema,
+            data,
             context_value={"request": request},
             debug=app.debug
         )
@@ -135,4 +135,4 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
