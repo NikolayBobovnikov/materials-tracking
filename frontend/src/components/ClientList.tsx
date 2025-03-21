@@ -12,7 +12,7 @@ import {
   Box,
   Button
 } from '@mui/material';
-import type { ClientListQuery$data } from '../__generated__/ClientListQuery.graphql';
+import type { ClientListQuery } from '../__generated__/ClientListQuery.graphql';
 
 // Define our query
 const clientListQuery = graphql`
@@ -38,20 +38,21 @@ const ClientList: React.FC = () => {
   const [first, setFirst] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
   
-  const data = useLazyLoadQuery(
+  const queryData = useLazyLoadQuery<ClientListQuery>(
     clientListQuery, 
     { first, after }
   );
 
-  const typedData = data as unknown as ClientListQuery$data;
+  // Access the response data properly
+  const data = queryData.response;
 
   const loadMore = () => {
-    if (typedData.clients?.pageInfo.hasNextPage) {
-      setAfter(typedData.clients.pageInfo.endCursor);
+    if (data.clients?.pageInfo.hasNextPage) {
+      setAfter(data.clients.pageInfo.endCursor);
     }
   };
 
-  if (!typedData.clients || !typedData.clients.edges || typedData.clients.edges.length === 0) {
+  if (!data.clients || !data.clients.edges || data.clients.edges.length === 0) {
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="h6" gutterBottom>Clients</Typography>
@@ -73,7 +74,7 @@ const ClientList: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {typedData.clients.edges.map((edge) => {
+            {data.clients.edges.map((edge) => {
               if (!edge || !edge.node) return null;
               const node = edge.node;
               return (
@@ -88,7 +89,7 @@ const ClientList: React.FC = () => {
         </Table>
       </TableContainer>
       
-      {typedData.clients.pageInfo.hasNextPage && (
+      {data.clients.pageInfo.hasNextPage && (
         <Button 
           variant="outlined" 
           onClick={loadMore} 

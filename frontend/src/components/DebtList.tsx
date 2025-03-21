@@ -2,7 +2,7 @@ import React from 'react';
 import { useLazyLoadQuery } from 'react-relay';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box, Button } from '@mui/material';
 import { graphql } from 'react-relay';
-import type { DebtListQuery$data } from '../__generated__/DebtListQuery.graphql';
+import type { DebtListQuery } from '../__generated__/DebtListQuery.graphql';
 
 // Use the imported query
 export const DEBT_LIST_QUERY = graphql`
@@ -32,17 +32,18 @@ const DebtList: React.FC = () => {
   const [first, setFirst] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
 
-  const data = useLazyLoadQuery(DEBT_LIST_QUERY, { first, after });
+  const queryData = useLazyLoadQuery<DebtListQuery>(DEBT_LIST_QUERY, { first, after });
   
-  const typedData = data as unknown as DebtListQuery$data;
+  // Access the response data properly
+  const data = queryData.response;
 
   const loadMore = () => {
-    if (typedData.debts.pageInfo.hasNextPage) {
-      setAfter(typedData.debts.pageInfo.endCursor);
+    if (data.debts.pageInfo.hasNextPage) {
+      setAfter(data.debts.pageInfo.endCursor);
     }
   };
 
-  if (!typedData.debts || !typedData.debts.edges || typedData.debts.edges.length === 0) {
+  if (!data.debts || !data.debts.edges || data.debts.edges.length === 0) {
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="h6" gutterBottom>Debts</Typography>
@@ -66,7 +67,7 @@ const DebtList: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {typedData.debts.edges.map((edge) => {
+            {data.debts.edges.map((edge) => {
               if (!edge || !edge.node) return null;
               const node = edge.node;
               return (
@@ -83,7 +84,7 @@ const DebtList: React.FC = () => {
         </Table>
       </TableContainer>
       
-      {typedData.debts.pageInfo.hasNextPage && (
+      {data.debts.pageInfo.hasNextPage && (
         <Button 
           variant="outlined" 
           onClick={loadMore} 
