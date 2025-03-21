@@ -25,7 +25,6 @@ from flask_cors import CORS
 from models import db
 from ariadne import graphql_sync
 from ariadne.explorer import ExplorerGraphiQL
-from ariadne.constants import PLAYGROUND_HTML
 from schema import schema
 
 def create_app():
@@ -55,7 +54,7 @@ def create_app():
     @app.route("/graphql", methods=["GET"])
     def graphql_playground():
         # Serve GraphQL Playground for interactive queries
-        return PLAYGROUND_HTML, 200
+        return ExplorerGraphiQL().html(None), 200
 
     @app.route("/graphql", methods=["POST"])
     def graphql_server():
@@ -108,6 +107,7 @@ if __name__ == '__main__':
     host = os.environ.get('HOST', '0.0.0.0')
     debug = os.environ.get('DEBUG', 'false').lower() == 'true'
     
+    logger = logging.getLogger(__name__)
     logger.info(f"Starting server on {host}:{port}, debug={debug}")
     
     app = create_app()

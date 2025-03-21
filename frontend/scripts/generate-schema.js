@@ -30,7 +30,9 @@ const isDocker = fs.existsSync('/.dockerenv') ||
                 (process.env.DOCKER_CONTAINER === 'true') ||
                 (process.env.RUNNING_IN_DOCKER === 'true');
 
-// Check if Python command is python or python3
+/**
+ * Check if Python command is python or python3
+ */
 function getPythonCommand() {
   try {
     execSync('python3 --version', { stdio: 'ignore' });
@@ -46,14 +48,16 @@ function getPythonCommand() {
   }
 }
 
-// Main function
+/**
+ * Main function that tries to generate the schema from the backend
+ */
 function generateSchema() {
   console.log(`🔍 Running schema generation (${isDocker ? 'Docker' : 'Local'} environment)...`);
 
   const pythonCmd = getPythonCommand();
   if (!pythonCmd) {
     handleMissingBackend();
-    return;
+    return false;
   }
 
   // Try each backend location
@@ -101,8 +105,12 @@ function generateSchema() {
 
   // If we get here, no backend was found
   handleMissingBackend();
+  return false;
 }
 
+/**
+ * Handles the case when no backend is found or schema generation fails
+ */
 function handleMissingBackend() {
   console.warn('⚠️ Warning: No backend found with generate_schema.py');
   
