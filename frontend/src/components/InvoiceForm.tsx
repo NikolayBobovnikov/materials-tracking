@@ -51,13 +51,21 @@ const InvoiceForm: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
   
   // Load clients and suppliers data
-  const queryData = useLazyLoadQuery<InvoiceFormClientsSuppliersQuery>(
+  const queryData = useLazyLoadQuery<InvoiceFormClientsSuppliersQuery['response']>(
     query, 
     { clientsFirst: 50, suppliersFirst: 50 }
   );
   
-  const clientsList = queryData.response.clients?.edges?.map((e) => e?.node) || [];
-  const suppliersList = queryData.response.suppliers?.edges?.map((e) => e?.node) || [];
+  type EdgeType = {
+    cursor: string;
+    node: {
+      id: string;
+      name: string;
+    } | null;
+  } | null;
+  
+  const clientsList = queryData.clients?.edges?.map((e: EdgeType) => e?.node) || [];
+  const suppliersList = queryData.suppliers?.edges?.map((e: EdgeType) => e?.node) || [];
 
   const onSubmit = async (formData: InvoiceFormInputs): Promise<void> => {
     setLoading(true);
@@ -112,14 +120,12 @@ const InvoiceForm: React.FC = () => {
         {...register("clientGlobalId", { required: true })}
         className="mb-4"
       >
-        {clientsList.map((c) => {
-          if (!c) return null;
-          return (
-            <MenuItem key={c.id} value={c.id}>
-              {c.name}
-            </MenuItem>
-          );
-        })}
+        <MenuItem value="">Select a client</MenuItem>
+        {clientsList.map((c) => (
+          <MenuItem key={c?.id} value={c?.id || ''}>
+            {c?.name}
+          </MenuItem>
+        ))}
       </TextField>
       
       <TextField
@@ -133,14 +139,12 @@ const InvoiceForm: React.FC = () => {
         {...register("supplierGlobalId", { required: true })}
         className="mb-4"
       >
-        {suppliersList.map((s) => {
-          if (!s) return null;
-          return (
-            <MenuItem key={s.id} value={s.id}>
-              {s.name}
-            </MenuItem>
-          );
-        })}
+        <MenuItem value="">Select a supplier</MenuItem>
+        {suppliersList.map((s) => (
+          <MenuItem key={s?.id} value={s?.id || ''}>
+            {s?.name}
+          </MenuItem>
+        ))}
       </TextField>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

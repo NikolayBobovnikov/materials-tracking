@@ -32,19 +32,19 @@ const DebtList: React.FC = () => {
   const [first] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
 
-  const data = useLazyLoadQuery<DebtListQuery>(
+  const data = useLazyLoadQuery<DebtListQuery['response']>(
     query, 
     { first, after }
   );
 
   const loadMore = (): void => {
-    const debts = data.response.debts;
+    const debts = data.debts;
     if (debts?.pageInfo.hasNextPage) {
       setAfter(debts.pageInfo.endCursor);
     }
   };
 
-  if (!data.response.debts || !data.response.debts.edges || data.response.debts.edges.length === 0) {
+  if (!data.debts || !data.debts.edges || data.debts.edges.length === 0) {
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="h6" gutterBottom>Debts</Typography>
@@ -68,7 +68,7 @@ const DebtList: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.response.debts.edges.map((edge) => {
+            {data.debts.edges.map((edge) => {
               if (!edge || !edge.node) return null;
               const node = edge.node;
               return (
@@ -85,7 +85,7 @@ const DebtList: React.FC = () => {
         </Table>
       </TableContainer>
       
-      {data.response.debts.pageInfo.hasNextPage && (
+      {data.debts.pageInfo.hasNextPage && (
         <Button 
           variant="outlined" 
           onClick={loadMore} 

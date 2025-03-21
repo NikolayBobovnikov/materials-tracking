@@ -31,18 +31,18 @@ const TransactionList: React.FC = () => {
   const [first] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
 
-  const data = useLazyLoadQuery<TransactionListQuery>(
+  const data = useLazyLoadQuery<TransactionListQuery['response']>(
     query, 
     { first, after }
   );
 
   const loadMore = (): void => {
-    if (data.response.transactions?.pageInfo.hasNextPage) {
-      setAfter(data.response.transactions.pageInfo.endCursor);
+    if (data.transactions?.pageInfo.hasNextPage) {
+      setAfter(data.transactions.pageInfo.endCursor);
     }
   };
 
-  if (!data.response.transactions || !data.response.transactions.edges || data.response.transactions.edges.length === 0) {
+  if (!data.transactions || !data.transactions.edges || data.transactions.edges.length === 0) {
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="h6" gutterBottom>Transactions</Typography>
@@ -65,7 +65,7 @@ const TransactionList: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.response.transactions.edges.map((edge) => {
+            {data.transactions.edges.map((edge) => {
               if (!edge || !edge.node) return null;
               const node = edge.node;
               return (
@@ -81,7 +81,7 @@ const TransactionList: React.FC = () => {
         </Table>
       </TableContainer>
       
-      {data.response.transactions.pageInfo.hasNextPage && (
+      {data.transactions.pageInfo.hasNextPage && (
         <Button 
           variant="outlined" 
           onClick={loadMore} 

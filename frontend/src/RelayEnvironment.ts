@@ -3,6 +3,7 @@ import {
   Network,
   RecordSource,
   Store,
+  type GraphQLResponse,
 } from 'relay-runtime';
 
 // Optional: Utility for global ID handling
@@ -21,7 +22,7 @@ export function fromGlobalId(globalId: string): { type: string; id: string } {
 const fetchQuery = (
   request: unknown,
   variables: Record<string, unknown>,
-): Promise<Record<string, unknown>> => {
+): Promise<GraphQLResponse> => {
   const operation = request as { text: string | null | undefined };
   return fetch('http://localhost:5000/graphql', {
     method: 'POST',

@@ -10,6 +10,8 @@ module.exports = {
     
     // React-specific rules
     'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'error'
+    'react-hooks/exhaustive-deps': 'error',
+
+    // Remove the Relay type safety rules until we can properly set up the plugin
   }
 }; 

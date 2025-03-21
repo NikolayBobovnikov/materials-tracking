@@ -34,13 +34,20 @@
     "eject": "react-scripts eject",
     "relay": "relay-compiler",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src --ext .ts,.tsx --max-warnings=0"
+    "type-check-all": "node scripts/type-check-all.js",
+    "fix-test-imports": "node scripts/fix-test-imports.js",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
+    "deploy": "bash scripts/deploy.sh"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
     ]
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
   },
   "browserslist": {
     "production": [
