@@ -9,11 +9,25 @@ services:
     environment:
       - SQLALCHEMY_DATABASE_URI=sqlite:///test.db
     restart: unless-stopped
+    volumes:
+      - ./backend:/app
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5000/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - GENERATE_SCHEMA=true
     ports:
       - "3000:80"
     restart: unless-stopped
+    depends_on:
+      - backend
+    volumes:
+      - ./backend:/backend_mount:ro  # Mount backend as read-only for schema generation

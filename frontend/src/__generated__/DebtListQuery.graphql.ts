@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<cf06757ef1857802b71f072d589e6e23>>
+ * @generated SignedSource<<b0bf12124550d5af5ac9a779dbf8ad57>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -23,15 +23,15 @@ export type DebtListQuery$data = {
         readonly id: string;
         readonly invoice: {
           readonly id: string;
-        } | null;
+        };
         readonly party: string;
-      } | null;
+      };
     } | null> | null;
     readonly pageInfo: {
       readonly endCursor: string | null;
       readonly hasNextPage: boolean;
     };
-  } | null;
+  };
 };
 export type DebtListQuery = {
   response: DebtListQuery$data;

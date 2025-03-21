@@ -12,11 +12,18 @@ RUN npm install
 # Copy the frontend source code
 COPY . .
 
-# Set Docker environment flag
-ENV DOCKER_CONTAINER=true
+# Create a simple helper script for schema generation during docker-compose build
+RUN echo '#!/bin/sh\n\
+if [ -d "/backend_mount" ] && [ -f "/backend_mount/generate_schema.py" ]; then\n\
+  echo "Generating schema from mounted backend"\n\
+  cd /backend_mount && python3 generate_schema.py\n\
+  exit $?\n\
+fi\n\
+echo "No backend mount found, using existing schema"\n\
+exit 0' > /app/generate-schema.sh && chmod +x /app/generate-schema.sh
 
-# Run schema generation script with Node.js
-RUN node scripts/generate-schema.js || echo "Schema generation failed, continuing with build"
+# Run schema generation script
+RUN /app/generate-schema.sh
 
 # Build the app
 RUN npm run type-check-all

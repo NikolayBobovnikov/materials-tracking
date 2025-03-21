@@ -18,18 +18,14 @@ Key Features:
 
 import os
 import sys
-
-# Add the parent directory to sys.path so that 'backend' can be imported
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+import logging
 from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_cors import CORS
 from models import db
-import logging
 from ariadne import graphql_sync
 from ariadne.explorer import ExplorerGraphiQL
-# Use Ariadne's built-in playground handler instead of hardcoded HTML
+from ariadne.constants import PLAYGROUND_HTML
 from schema import schema
 
 def create_app():
@@ -37,11 +33,10 @@ def create_app():
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(),  # Output to console
-            logging.FileHandler('app.log')  # Save to file
-        ]
+        filename='app.log',
+        filemode='a'
     )
+    logger = logging.getLogger(__name__)
     
     app = Flask(__name__)
 
@@ -60,13 +55,15 @@ def create_app():
     @app.route("/graphql", methods=["GET"])
     def graphql_playground():
         # Serve GraphQL Playground for interactive queries
-        playground_html = ExplorerGraphiQL(endpoint="/graphql").html(None)
-        return playground_html, 200
+        return PLAYGROUND_HTML, 200
 
     @app.route("/graphql", methods=["POST"])
     def graphql_server():
         # Handle GraphQL queries
         data = request.get_json()
+        
+        # Log the incoming GraphQL query
+        logger.info("GraphQL Query: %s", data.get('query') if data else None)
         
         success, result = graphql_sync(
             schema,
@@ -75,13 +72,43 @@ def create_app():
             debug=app.debug
         )
         
+        # Log errors if any
+        if not success:
+            logger.error("GraphQL Errors: %s", result.get('errors'))
+        
         status_code = 200 if success else 400
         return jsonify(result), status_code
+
+    @app.route('/healthcheck', methods=['GET'])
+    def healthcheck():
+        """
+        Simple health check endpoint for Docker and other monitoring systems.
+        This validates that the application is running and the database is accessible.
+        """
+        try:
+            # Check database connection
+            db.session.execute('SELECT 1')
+            return jsonify({
+                "status": "healthy",
+                "message": "Application is running and database is accessible"
+            }), 200
+        except Exception as e:
+            logger.error(f"Health check failed: {str(e)}")
+            return jsonify({
+                "status": "unhealthy",
+                "message": f"Health check failed: {str(e)}"
+            }), 500
 
     app.logger.info("Flask application initialized with Ariadne GraphQL")
 
     return app
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    host = os.environ.get('HOST', '0.0.0.0')
+    debug = os.environ.get('DEBUG', 'false').lower() == 'true'
+    
+    logger.info(f"Starting server on {host}:{port}, debug={debug}")
+    
     app = create_app()
-    app.run(debug=True, host='0.0.0.0')
+    app.run(host=host, port=port, debug=debug)

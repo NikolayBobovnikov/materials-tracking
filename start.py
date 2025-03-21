@@ -46,6 +46,33 @@ def setup_frontend():
         sys.exit(e.returncode)
     os.chdir('..')
 
+def sync_graphql_schema():
+    """Synchronize GraphQL schema from backend to frontend"""
+    print("Synchronizing GraphQL schema...")
+    
+    # Remember original directory
+    original_dir = os.getcwd()
+    
+    try:
+        # Execute schema generation script in backend
+        os.chdir('backend')
+        if platform.system() == "Windows":
+            subprocess.run(["python", "generate_schema.py"], check=True)
+        else:
+            subprocess.run(["python3", "generate_schema.py"], check=True)
+        
+        # Run relay compiler in frontend
+        os.chdir('../frontend')
+        subprocess.run(["npm", "run", "relay"], check=True)
+        
+        print("✅ Schema synchronized successfully")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Schema synchronization failed with error code {e.returncode}")
+        sys.exit(e.returncode)
+    finally:
+        # Return to original directory
+        os.chdir(original_dir)
+
 def main():
     # Store the original directory
     original_dir = os.getcwd()
@@ -56,6 +83,11 @@ def main():
         if setup == 'y':
             setup_backend()
             setup_frontend()
+        
+        # Synchronize GraphQL schema
+        sync_schema = input("Do you want to synchronize GraphQL schema? (y/n): ").lower()
+        if sync_schema == 'y':
+            sync_graphql_schema()
         
         # Start backend in a separate thread
         print("Starting backend server...")

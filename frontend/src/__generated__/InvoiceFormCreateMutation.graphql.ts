@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<2f77ae5b4fbee998bb3570c3e9d8205f>>
+ * @generated SignedSource<<725a4608b31db18b75fc3140dd83bdd6>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -20,11 +20,19 @@ export type InvoiceFormCreateMutation$data = {
     readonly errors: ReadonlyArray<string | null> | null;
     readonly invoice: {
       readonly base_amount: number;
+      readonly client: {
+        readonly id: string;
+        readonly name: string;
+      };
       readonly id: string;
       readonly invoice_date: string;
       readonly status: string;
+      readonly supplier: {
+        readonly id: string;
+        readonly name: string;
+      };
     } | null;
-  } | null;
+  };
 };
 export type InvoiceFormCreateMutation = {
   response: InvoiceFormCreateMutation$data;
@@ -52,7 +60,24 @@ v3 = {
   "kind": "LocalArgument",
   "name": "supplierId"
 },
-v4 = [
+v4 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "id",
+  "storageKey": null
+},
+v5 = [
+  (v4/*: any*/),
+  {
+    "alias": null,
+    "args": null,
+    "kind": "ScalarField",
+    "name": "name",
+    "storageKey": null
+  }
+],
+v6 = [
   {
     "alias": null,
     "args": [
@@ -77,7 +102,7 @@ v4 = [
         "variableName": "supplierId"
       }
     ],
-    "concreteType": "CreateMaterialsInvoicePayload",
+    "concreteType": "MaterialsInvoicePayload",
     "kind": "LinkedField",
     "name": "createMaterialsInvoice",
     "plural": false,
@@ -90,11 +115,32 @@ v4 = [
         "name": "invoice",
         "plural": false,
         "selections": [
+          (v4/*: any*/),
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "Client",
+            "kind": "LinkedField",
+            "name": "client",
+            "plural": false,
+            "selections": (v5/*: any*/),
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "Supplier",
+            "kind": "LinkedField",
+            "name": "supplier",
+            "plural": false,
+            "selections": (v5/*: any*/),
+            "storageKey": null
+          },
           {
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "id",
+            "name": "invoice_date",
             "storageKey": null
           },
           {
@@ -109,13 +155,6 @@ v4 = [
             "args": null,
             "kind": "ScalarField",
             "name": "status",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "invoice_date",
             "storageKey": null
           }
         ],
@@ -143,7 +182,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "InvoiceFormCreateMutation",
-    "selections": (v4/*: any*/),
+    "selections": (v6/*: any*/),
     "type": "Mutation",
     "abstractKey": null
   },
@@ -157,19 +196,19 @@ return {
     ],
     "kind": "Operation",
     "name": "InvoiceFormCreateMutation",
-    "selections": (v4/*: any*/)
+    "selections": (v6/*: any*/)
   },
   "params": {
-    "cacheID": "4705b51f09d3bfff4e9d3b8a18a5cbfe",
+    "cacheID": "c0f41cb0916da13018a66b3e696dfd73",
     "id": null,
     "metadata": {},
     "name": "InvoiceFormCreateMutation",
     "operationKind": "mutation",
-    "text": "mutation InvoiceFormCreateMutation(\n  $clientId: ID!\n  $supplierId: ID!\n  $invoiceDate: String!\n  $baseAmount: Float!\n) {\n  createMaterialsInvoice(clientId: $clientId, supplierId: $supplierId, invoiceDate: $invoiceDate, baseAmount: $baseAmount) {\n    invoice {\n      id\n      base_amount\n      status\n      invoice_date\n    }\n    errors\n  }\n}\n"
+    "text": "mutation InvoiceFormCreateMutation(\n  $clientId: ID!\n  $supplierId: ID!\n  $invoiceDate: String!\n  $baseAmount: Float!\n) {\n  createMaterialsInvoice(clientId: $clientId, supplierId: $supplierId, invoiceDate: $invoiceDate, baseAmount: $baseAmount) {\n    invoice {\n      id\n      client {\n        id\n        name\n      }\n      supplier {\n        id\n        name\n      }\n      invoice_date\n      base_amount\n      status\n    }\n    errors\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "4514b274e851b9561716c6f6be23ebac";
+(node as any).hash = "27460b30bd61a377f2d091cc3f3f1ca5";
 
 export default node;

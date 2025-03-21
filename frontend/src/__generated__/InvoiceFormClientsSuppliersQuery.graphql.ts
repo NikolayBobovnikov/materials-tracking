@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<b871f5d02cd81664f8208e24b9ead493>>
+ * @generated SignedSource<<02af26d6bf0a22e45d67718caa337583>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -20,26 +20,26 @@ export type InvoiceFormClientsSuppliersQuery$data = {
       readonly node: {
         readonly id: string;
         readonly name: string;
-      } | null;
+      };
     } | null> | null;
     readonly pageInfo: {
       readonly endCursor: string | null;
       readonly hasNextPage: boolean;
     };
-  } | null;
+  };
   readonly suppliers: {
     readonly edges: ReadonlyArray<{
       readonly cursor: string;
       readonly node: {
         readonly id: string;
         readonly name: string;
-      } | null;
+      };
     } | null> | null;
     readonly pageInfo: {
       readonly endCursor: string | null;
       readonly hasNextPage: boolean;
     };
-  } | null;
+  };
 };
 export type InvoiceFormClientsSuppliersQuery = {
   response: InvoiceFormClientsSuppliersQuery$data;

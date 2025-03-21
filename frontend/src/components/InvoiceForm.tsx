@@ -53,9 +53,17 @@ const createInvoiceMutation = graphql`
     ) {
       invoice {
         id
+        client {
+          id
+          name
+        }
+        supplier {
+          id
+          name
+        }
+        invoice_date
         base_amount
         status
-        invoice_date
       }
       errors
     }
@@ -84,9 +92,17 @@ interface CreateMaterialsInvoiceResponse {
   createMaterialsInvoice: {
     invoice: {
       id: string;
+      client: {
+        id: string;
+        name: string;
+      };
+      supplier: {
+        id: string;
+        name: string;
+      };
+      invoice_date: string;
       base_amount: number;
       status: string;
-      invoice_date: string;
     };
     errors: string[] | null;
   };
@@ -136,7 +152,7 @@ const InvoiceForm: React.FC = () => {
         }
         
         // On success
-        setSuccess(`Invoice created: ${result.invoice.id}`);
+        setSuccess(`Invoice created: ${result.invoice.id} for client ${result.invoice.client.name}`);
         reset(); // Reset form fields
       },
       onError: (err: Error) => {

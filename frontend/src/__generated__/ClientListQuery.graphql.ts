@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<d6ae1e920f4f000e7967ea6db9f564a4>>
+ * @generated SignedSource<<1090c8918ca95ece7452041daa45b1a4>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -21,13 +21,13 @@ export type ClientListQuery$data = {
         readonly id: string;
         readonly markup_rate: number;
         readonly name: string;
-      } | null;
+      };
     } | null> | null;
     readonly pageInfo: {
       readonly endCursor: string | null;
       readonly hasNextPage: boolean;
     };
-  } | null;
+  };
 };
 export type ClientListQuery = {
   response: ClientListQuery$data;

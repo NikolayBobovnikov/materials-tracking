@@ -34,7 +34,7 @@
     "test": "craco test",
     "eject": "react-scripts eject",
     "relay": "relay-compiler",
-    "generate-schema": "node scripts/generate-schema.js",
+    "generate-schema": "cd ../backend && python generate_schema.py",
     "type-check": "tsc --noEmit",
     "type-check-all": "node scripts/type-check-all.js",
     "fix-test-imports": "node scripts/fix-test-imports.js",
