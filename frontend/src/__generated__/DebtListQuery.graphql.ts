@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<b0bf12124550d5af5ac9a779dbf8ad57>>
+ * @generated SignedSource<<831ac2687b121a20f73250ccdda743d6>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -21,9 +21,6 @@ export type DebtListQuery$data = {
         readonly amount: number;
         readonly created_date: string;
         readonly id: string;
-        readonly invoice: {
-          readonly id: string;
-        };
         readonly party: string;
       };
     } | null> | null;
@@ -49,14 +46,7 @@ v1 = {
   "kind": "LocalArgument",
   "name": "first"
 },
-v2 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "id",
-  "storageKey": null
-},
-v3 = [
+v2 = [
   {
     "alias": null,
     "args": [
@@ -92,7 +82,13 @@ v3 = [
             "name": "node",
             "plural": false,
             "selections": [
-              (v2/*: any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "id",
+                "storageKey": null
+              },
               {
                 "alias": null,
                 "args": null,
@@ -112,18 +108,6 @@ v3 = [
                 "args": null,
                 "kind": "ScalarField",
                 "name": "created_date",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "concreteType": "MaterialsInvoice",
-                "kind": "LinkedField",
-                "name": "invoice",
-                "plural": false,
-                "selections": [
-                  (v2/*: any*/)
-                ],
                 "storageKey": null
               }
             ],
@@ -177,7 +161,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "DebtListQuery",
-    "selections": (v3/*: any*/),
+    "selections": (v2/*: any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -189,19 +173,19 @@ return {
     ],
     "kind": "Operation",
     "name": "DebtListQuery",
-    "selections": (v3/*: any*/)
+    "selections": (v2/*: any*/)
   },
   "params": {
-    "cacheID": "59db54bf572b0e13037dbe6f305646a4",
+    "cacheID": "ef67881a83225d4a6255a49a54d382f0",
     "id": null,
     "metadata": {},
     "name": "DebtListQuery",
     "operationKind": "query",
-    "text": "query DebtListQuery(\n  $first: Int\n  $after: String\n) {\n  debts(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        party\n        amount\n        created_date\n        invoice {\n          id\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
+    "text": "query DebtListQuery(\n  $first: Int\n  $after: String\n) {\n  debts(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        party\n        amount\n        created_date\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "b6e8cdb7563b9c623185b8a2ccade331";
+(node as any).hash = "fd05d6340b68d4b03f6f1daf14650566";
 
 export default node;

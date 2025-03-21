@@ -1,7 +1,6 @@
 import React from 'react';
 import { graphql } from 'react-relay';
-import { TableRow, TableCell } from '@mui/material';
-import type { ClientListQuery } from './../__generated__/ClientListQuery.graphql';
+import { TableCell } from '@mui/material';
 import PaginatedList from './PaginatedList';
 
 // Define the query
@@ -33,18 +32,17 @@ type ClientNode = {
 
 const ClientList: React.FC = () => {
   return (
-    <PaginatedList<ClientNode, ClientListQuery['response']>
+    <PaginatedList<ClientNode>
       query={query}
       variables={{ first: 10 }}
       title="Clients"
-      headers={["ID", "Name", "Markup Rate"]}
       connectionPath="clients"
-      renderRow={(node) => (
-        <TableRow key={node.id}>
+      renderItem={(node) => (
+        <>
           <TableCell>{node.id}</TableCell>
           <TableCell>{node.name}</TableCell>
           <TableCell>{node.markup_rate}</TableCell>
-        </TableRow>
+        </>
       )}
     />
   );

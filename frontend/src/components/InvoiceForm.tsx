@@ -87,8 +87,8 @@ type SupplierNode = {
   name: string;
 };
 
-// Define mutation response type until it's generated
-interface CreateMaterialsInvoiceResponse {
+// Response type for createMaterialsInvoice mutation
+interface MutationResponse {
   createMaterialsInvoice: {
     invoice: {
       id: string;
@@ -113,11 +113,12 @@ const InvoiceForm: React.FC = () => {
   const [loadMore, setLoadMore] = React.useState({ clients: false, suppliers: false });
   const [success, setSuccess] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
   
-  // Load clients and suppliers data with smaller initial batch
-  const queryData = useLazyLoadQuery<InvoiceFormClientsSuppliersQuery['response']>(
+  // Load clients and suppliers data
+  const queryData = useLazyLoadQuery<InvoiceFormClientsSuppliersQuery>(
     query, 
-    { clientsFirst: 10, suppliersFirst: 10 }
+    { clientsFirst: 50, suppliersFirst: 50 }
   );
   
   // Set up mutation
@@ -135,27 +136,36 @@ const InvoiceForm: React.FC = () => {
   const onSubmit = async (formData: InvoiceFormInputs): Promise<void> => {
     setSuccess(null);
     setError(null);
+    setLoading(true);
     
     commitMutation({
       variables: {
         clientId: formData.clientGlobalId,
         supplierId: formData.supplierGlobalId,
         invoiceDate: formData.invoiceDate,
-        baseAmount: parseFloat(formData.baseAmount.toString())
+        baseAmount: parseFloat(formData.baseAmount.toString()),
       },
-      onCompleted: (response: CreateMaterialsInvoiceResponse) => {
-        const result = response.createMaterialsInvoice;
+      onCompleted: (response, errors) => {
+        setLoading(false);
         
-        if (result.errors && result.errors.length > 0) {
-          setError(result.errors.join(', '));
+        // Type cast the response to our expected type
+        const typedResponse = response as unknown as MutationResponse;
+        
+        if (typedResponse?.createMaterialsInvoice?.errors && typedResponse.createMaterialsInvoice.errors.length > 0) {
+          setError(typedResponse.createMaterialsInvoice.errors.join(', '));
           return;
         }
         
-        // On success
-        setSuccess(`Invoice created: ${result.invoice.id} for client ${result.invoice.client.name}`);
+        setSuccess('Invoice created: ' + typedResponse?.createMaterialsInvoice?.invoice?.id);
         reset(); // Reset form fields
+
+        // Force a refetch of queries with a small delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       },
       onError: (err: Error) => {
+        setLoading(false);
         setError(err.message || 'Error creating invoice');
         console.error(err);
       }
@@ -267,7 +277,7 @@ const InvoiceForm: React.FC = () => {
         type="submit" 
         variant="contained" 
         color="primary" 
-        disabled={isMutationInFlight}
+        disabled={isMutationInFlight || loading}
         className="mt-4"
         sx={{ mt: 2 }}
       >

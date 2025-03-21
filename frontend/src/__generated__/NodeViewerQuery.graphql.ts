@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<cb68394268d04c5d1f526b9b2edb1bea>>
+ * @generated SignedSource<<bd3215de24730541077cedb0fb241c55>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -14,16 +14,20 @@ export type NodeViewerQuery$variables = {
 };
 export type NodeViewerQuery$data = {
   readonly node: {
-    readonly amount?: number;
     readonly base_amount?: number;
-    readonly created_date?: string;
+    readonly client?: {
+      readonly id: string;
+      readonly name: string;
+    };
     readonly id: string;
     readonly invoice_date?: string;
     readonly markup_rate?: number;
     readonly name?: string;
-    readonly party?: string;
     readonly status?: string;
-    readonly transaction_date?: string;
+    readonly supplier?: {
+      readonly id: string;
+      readonly name: string;
+    };
   } | null;
 };
 export type NodeViewerQuery = {
@@ -83,7 +87,11 @@ v5 = {
   "type": "Supplier",
   "abstractKey": null
 },
-v6 = {
+v6 = [
+  (v2/*: any*/),
+  (v3/*: any*/)
+],
+v7 = {
   "kind": "InlineFragment",
   "selections": [
     {
@@ -97,62 +105,38 @@ v6 = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "invoice_date",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "status",
       "storageKey": null
     },
     {
       "alias": null,
       "args": null,
-      "kind": "ScalarField",
-      "name": "invoice_date",
+      "concreteType": "Client",
+      "kind": "LinkedField",
+      "name": "client",
+      "plural": false,
+      "selections": (v6/*: any*/),
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "Supplier",
+      "kind": "LinkedField",
+      "name": "supplier",
+      "plural": false,
+      "selections": (v6/*: any*/),
       "storageKey": null
     }
   ],
   "type": "MaterialsInvoice",
-  "abstractKey": null
-},
-v7 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "amount",
-  "storageKey": null
-},
-v8 = {
-  "kind": "InlineFragment",
-  "selections": [
-    (v7/*: any*/),
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "transaction_date",
-      "storageKey": null
-    }
-  ],
-  "type": "Transaction",
-  "abstractKey": null
-},
-v9 = {
-  "kind": "InlineFragment",
-  "selections": [
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "party",
-      "storageKey": null
-    },
-    (v7/*: any*/),
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "created_date",
-      "storageKey": null
-    }
-  ],
-  "type": "Debt",
   "abstractKey": null
 };
 return {
@@ -173,9 +157,7 @@ return {
           (v2/*: any*/),
           (v4/*: any*/),
           (v5/*: any*/),
-          (v6/*: any*/),
-          (v8/*: any*/),
-          (v9/*: any*/)
+          (v7/*: any*/)
         ],
         "storageKey": null
       }
@@ -207,25 +189,23 @@ return {
           (v2/*: any*/),
           (v4/*: any*/),
           (v5/*: any*/),
-          (v6/*: any*/),
-          (v8/*: any*/),
-          (v9/*: any*/)
+          (v7/*: any*/)
         ],
         "storageKey": null
       }
     ]
   },
   "params": {
-    "cacheID": "6b7a0b6238b8779c87646fb9b543af6d",
+    "cacheID": "3f0985fb79fcfb764aaabe48e9abed12",
     "id": null,
     "metadata": {},
     "name": "NodeViewerQuery",
     "operationKind": "query",
-    "text": "query NodeViewerQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    id\n    ... on Client {\n      name\n      markup_rate\n    }\n    ... on Supplier {\n      name\n    }\n    ... on MaterialsInvoice {\n      base_amount\n      status\n      invoice_date\n    }\n    ... on Transaction {\n      amount\n      transaction_date\n    }\n    ... on Debt {\n      party\n      amount\n      created_date\n    }\n  }\n}\n"
+    "text": "query NodeViewerQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    id\n    ... on Client {\n      name\n      markup_rate\n    }\n    ... on Supplier {\n      name\n    }\n    ... on MaterialsInvoice {\n      base_amount\n      invoice_date\n      status\n      client {\n        id\n        name\n      }\n      supplier {\n        id\n        name\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "9689483ab7538ac1b455fa6bc2b9e5c8";
+(node as any).hash = "8df634e5a92030d02c14e5e89e8b3a53";
 
 export default node;

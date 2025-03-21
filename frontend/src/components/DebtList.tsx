@@ -1,11 +1,10 @@
 import React from 'react';
 import { graphql } from 'react-relay';
-import { TableRow, TableCell } from '@mui/material';
-import type { DebtListQuery } from './../__generated__/DebtListQuery.graphql';
+import { TableCell } from '@mui/material';
 import PaginatedList from './PaginatedList';
 
 // Define the query
-export const query = graphql`
+const query = graphql`
   query DebtListQuery($first: Int, $after: String) {
     debts(first: $first, after: $after) {
       edges {
@@ -14,9 +13,6 @@ export const query = graphql`
           party
           amount
           created_date
-          invoice {
-            id
-          }
         }
         cursor
       }
@@ -34,27 +30,22 @@ type DebtNode = {
   party: string;
   amount: number;
   created_date: string;
-  invoice?: {
-    id: string;
-  };
 };
 
 const DebtList: React.FC = () => {
   return (
-    <PaginatedList<DebtNode, DebtListQuery['response']>
+    <PaginatedList<DebtNode>
       query={query}
       variables={{ first: 10 }}
       title="Debts"
-      headers={["Debt ID", "Party", "Amount", "Created Date", "Invoice ID"]}
       connectionPath="debts"
-      renderRow={(node) => (
-        <TableRow key={node.id}>
+      renderItem={(node) => (
+        <>
           <TableCell>{node.id}</TableCell>
           <TableCell>{node.party}</TableCell>
-          <TableCell>{node.amount}</TableCell>
-          <TableCell>{node.created_date}</TableCell>
-          <TableCell>{node.invoice?.id}</TableCell>
-        </TableRow>
+          <TableCell>${node.amount.toFixed(2)}</TableCell>
+          <TableCell>{new Date(node.created_date).toLocaleDateString()}</TableCell>
+        </>
       )}
     />
   );

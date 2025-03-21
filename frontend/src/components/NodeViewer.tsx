@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, Paper, Divider } from '@mui/material';
 import { graphql, useLazyLoadQuery } from 'react-relay';
 import { toGlobalId } from '../RelayEnvironment';
+import { NodeViewerQuery } from '../__generated__/NodeViewerQuery.graphql';
 
-// Define the query for node fetching
-const nodeQuery = graphql`
+// Query to fetch node by its global ID
+const NODE_QUERY = graphql`
   query NodeViewerQuery($id: ID!) {
     node(id: $id) {
       id
@@ -17,37 +18,25 @@ const nodeQuery = graphql`
       }
       ... on MaterialsInvoice {
         base_amount
-        status
         invoice_date
-      }
-      ... on Transaction {
-        amount
-        transaction_date
-      }
-      ... on Debt {
-        party
-        amount
-        created_date
+        status
+        client {
+          id
+          name
+        }
+        supplier {
+          id
+          name
+        }
       }
     }
   }
 `;
 
-// Define interfaces for the node data
-interface NodeData {
-  id: string;
-  [key: string]: unknown;
-}
-
-// Define query response type
-interface NodeViewerQueryResponse {
-  node: NodeData | null;
-}
-
 // Separate component for fetching data
 const NodeDataDisplay: React.FC<{ id: string }> = ({ id }) => {
-  const data = useLazyLoadQuery<NodeViewerQueryResponse>(
-    nodeQuery, 
+  const data = useLazyLoadQuery<NodeViewerQuery>(
+    NODE_QUERY,
     { id }
   );
   

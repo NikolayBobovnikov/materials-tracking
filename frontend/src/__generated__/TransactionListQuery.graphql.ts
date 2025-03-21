@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<803ebc50218923e5ac4f1ed8edf36dc1>>
+ * @generated SignedSource<<29eda91a3b3d6bb128d45a12b702cc10>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -20,9 +20,6 @@ export type TransactionListQuery$data = {
       readonly node: {
         readonly amount: number;
         readonly id: string;
-        readonly invoice: {
-          readonly id: string;
-        };
         readonly transaction_date: string;
       };
     } | null> | null;
@@ -48,14 +45,7 @@ v1 = {
   "kind": "LocalArgument",
   "name": "first"
 },
-v2 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "id",
-  "storageKey": null
-},
-v3 = [
+v2 = [
   {
     "alias": null,
     "args": [
@@ -91,7 +81,13 @@ v3 = [
             "name": "node",
             "plural": false,
             "selections": [
-              (v2/*: any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "id",
+                "storageKey": null
+              },
               {
                 "alias": null,
                 "args": null,
@@ -104,18 +100,6 @@ v3 = [
                 "args": null,
                 "kind": "ScalarField",
                 "name": "transaction_date",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "concreteType": "MaterialsInvoice",
-                "kind": "LinkedField",
-                "name": "invoice",
-                "plural": false,
-                "selections": [
-                  (v2/*: any*/)
-                ],
                 "storageKey": null
               }
             ],
@@ -169,7 +153,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "TransactionListQuery",
-    "selections": (v3/*: any*/),
+    "selections": (v2/*: any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -181,19 +165,19 @@ return {
     ],
     "kind": "Operation",
     "name": "TransactionListQuery",
-    "selections": (v3/*: any*/)
+    "selections": (v2/*: any*/)
   },
   "params": {
-    "cacheID": "ba9720d260be4a8a4c3c8fcae1a4d490",
+    "cacheID": "eb6e0105b7c0937a0ef3ce900386aefa",
     "id": null,
     "metadata": {},
     "name": "TransactionListQuery",
     "operationKind": "query",
-    "text": "query TransactionListQuery(\n  $first: Int\n  $after: String\n) {\n  transactions(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        amount\n        transaction_date\n        invoice {\n          id\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
+    "text": "query TransactionListQuery(\n  $first: Int\n  $after: String\n) {\n  transactions(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        amount\n        transaction_date\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "78fd2f65a56b180ca022ec367d8bce2a";
+(node as any).hash = "48453985bec8ef096bed3fa3a99c7f98";
 
 export default node;

@@ -1,69 +1,60 @@
 import React from 'react';
+import { GraphQLTaggedNode } from 'relay-runtime';
 import { useLazyLoadQuery } from 'react-relay';
-import type { GraphQLTaggedNode } from 'relay-runtime';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box, Button } from '@mui/material';
 
-type PageInfo = {
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-  startCursor: string | null;
-  endCursor: string | null;
-};
-
-type Edge<T> = {
-  node: T;
-  cursor: string;
-} | null;
-
 type Connection<T> = {
-  edges: Array<Edge<T>>;
-  pageInfo: PageInfo;
+  edges: Array<{
+    node: T;
+    cursor: string;
+  } | null> | null;
+  pageInfo: {
+    hasNextPage: boolean;
+    endCursor: string | null;
+  };
 };
 
-type PaginatedListProps<T, QueryResponse> = {
-  query: GraphQLTaggedNode; // Properly typed GraphQL query
-  variables: { first: number; after?: string | null };
-  title: string;
-  headers: string[];
-  renderRow: (node: T) => React.ReactNode;
-  connectionPath: keyof QueryResponse; // Path to the connection in the query response (e.g., "clients", "transactions")
+type PaginatedListProps<T extends { id: string }> = {
+  query: GraphQLTaggedNode;
+  variables: Record<string, unknown>;
+  connectionPath: string;
+  renderItem: (item: T) => React.ReactNode;
   emptyMessage?: string;
+  title?: string;
 };
 
-const PaginatedList = <T, QueryResponse extends Record<string, unknown>>({
+function PaginatedList<T extends { id: string }>({
   query,
   variables,
-  title,
-  headers,
-  renderRow,
   connectionPath,
-  emptyMessage
-}: PaginatedListProps<T, QueryResponse>): React.ReactElement => {
-  const [first] = React.useState(variables.first || 10);
-  const [after, setAfter] = React.useState<string | null>(variables.after || null);
+  renderItem,
+  emptyMessage = "No items found",
+  title = "Items"
+}: PaginatedListProps<T>): React.ReactElement {
+  const [after, setAfter] = React.useState<string | null>(null);
+  const allVariables = { ...variables, after };
 
-  const data = useLazyLoadQuery<QueryResponse>(
+  const data = useLazyLoadQuery(
     query,
-    { first, after }
-  );
+    allVariables
+  ) as Record<string, unknown>;
 
-  // Get the connection from the response using the connectionPath
-  const connection = data[connectionPath] as unknown as Connection<T>;
+  const connectionData = data[connectionPath] as unknown as Connection<T>;
+  
+  if (!connectionData || !connectionData.edges || connectionData.edges.length === 0) {
+    return <Typography>{emptyMessage}</Typography>;
+  }
+
+  const items = connectionData.edges
+    .filter(Boolean)
+    .map(edge => edge?.node)
+    .filter(Boolean) as T[];
 
   const loadMore = (): void => {
-    if (connection?.pageInfo.hasNextPage) {
-      setAfter(connection.pageInfo.endCursor);
+    if (connectionData?.pageInfo.hasNextPage) {
+      setAfter(connectionData.pageInfo.endCursor);
     }
   };
-
-  if (!connection?.edges?.length) {
-    return (
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="h6" gutterBottom>{title}</Typography>
-        <Typography>{emptyMessage || `No ${title.toLowerCase()} found.`}</Typography>
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -72,21 +63,20 @@ const PaginatedList = <T, QueryResponse extends Record<string, unknown>>({
         <Table>
           <TableHead>
             <TableRow>
-              {headers.map((header) => (
-                <TableCell key={header}>{header}</TableCell>
-              ))}
+              <TableCell>Details</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {connection.edges.map((edge) => {
-              if (!edge || !edge.node) return null;
-              return renderRow(edge.node);
-            })}
+            {items.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{renderItem(item)}</TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
       
-      {connection.pageInfo.hasNextPage && (
+      {connectionData?.pageInfo.hasNextPage && (
         <Button 
           variant="outlined" 
           onClick={loadMore} 
@@ -97,6 +87,6 @@ const PaginatedList = <T, QueryResponse extends Record<string, unknown>>({
       )}
     </Box>
   );
-};
+}
 
 export default PaginatedList; 
