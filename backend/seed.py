@@ -1,5 +1,5 @@
 from app import create_app
-from models import db, Client, Supplier
+from backend.models import db, Client, Supplier
 
 app = create_app()
 
