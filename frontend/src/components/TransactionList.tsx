@@ -2,7 +2,7 @@ import React from 'react';
 import { useLazyLoadQuery } from 'react-relay';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box, Button } from '@mui/material';
 import { graphql } from 'react-relay';
-import type { TransactionListQuery } from '../__generated__/TransactionListQuery.graphql';
+import type { TransactionListQuery$data } from '../__generated__/TransactionListQuery.graphql';
 
 // Use the imported query
 export const TRANSACTION_LIST_QUERY = graphql`
@@ -31,10 +31,7 @@ const TransactionList: React.FC = () => {
   const [first, setFirst] = React.useState(10);
   const [after, setAfter] = React.useState<string | null>(null);
 
-  const queryData = useLazyLoadQuery<TransactionListQuery>(TRANSACTION_LIST_QUERY, { first, after });
-  
-  // Access the response data properly
-  const data = queryData.response;
+  const data = useLazyLoadQuery<TransactionListQuery$data>(TRANSACTION_LIST_QUERY, { first, after });
 
   const loadMore = () => {
     if (data.transactions.pageInfo.hasNextPage) {

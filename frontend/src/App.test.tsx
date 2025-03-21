@@ -8,13 +8,15 @@ jest.mock('react-relay', () => ({
   RelayEnvironmentProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   graphql: jest.fn(() => ({})),
   useLazyLoadQuery: jest.fn(() => ({
-    allClients: { edges: [] },
-    allSuppliers: { edges: [] }
+    clients: { edges: [], pageInfo: { hasNextPage: false, endCursor: null } },
+    debts: { edges: [], pageInfo: { hasNextPage: false, endCursor: null } },
+    transactions: { edges: [], pageInfo: { hasNextPage: false, endCursor: null } }
   }))
 }));
 
 // Mock the components that use GraphQL
 jest.mock('./components/InvoiceForm', () => () => <div>Mocked InvoiceForm</div>);
+jest.mock('./components/ClientList', () => () => <div>Mocked ClientList</div>);
 jest.mock('./components/DebtList', () => () => <div>Mocked DebtList</div>);
 jest.mock('./components/TransactionList', () => () => <div>Mocked TransactionList</div>);
 
