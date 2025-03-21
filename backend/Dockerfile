@@ -11,7 +11,9 @@ COPY . .
 
 # Set PYTHONPATH to include the current directory
 ENV PYTHONPATH=/app
+ENV FLASK_APP=app.py
 
 # Flask port
 EXPOSE 5000
-CMD ["python", "app.py"]
+# Set up database and run Flask
+CMD flask db upgrade && flask run --host=0.0.0.0

@@ -149,26 +149,6 @@ query = QueryType()
 mutation = MutationType()
 
 # Query resolvers
-@query.field("clients")
-def resolve_clients(*_):
-    return Client.query.all()
-
-@query.field("suppliers")
-def resolve_suppliers(*_):
-    return Supplier.query.all()
-
-@query.field("invoices")
-def resolve_invoices(*_):
-    return MaterialsInvoice.query.all()
-
-@query.field("transactions")
-def resolve_transactions(*_):
-    return Transaction.query.all()
-
-@query.field("debts")
-def resolve_debts(*_):
-    return Debt.query.all()
-
 @query.field("client")
 def resolve_client(_, info, id):
     return Client.query.get(id)
@@ -196,14 +176,6 @@ materials_invoice = ObjectType("MaterialsInvoice")
 transaction = ObjectType("Transaction")
 debt = ObjectType("Debt")
 
-@client.field("invoices")
-def resolve_client_invoices(obj, *_):
-    return MaterialsInvoice.query.filter_by(client_id=obj.id).all()
-
-@supplier.field("invoices")
-def resolve_supplier_invoices(obj, *_):
-    return MaterialsInvoice.query.filter_by(supplier_id=obj.id).all()
-
 @materials_invoice.field("client")
 def resolve_invoice_client(obj, *_):
     return Client.query.get(obj.client_id)
@@ -215,10 +187,6 @@ def resolve_invoice_supplier(obj, *_):
 @materials_invoice.field("transaction")
 def resolve_invoice_transaction(obj, *_):
     return Transaction.query.filter_by(invoice_id=obj.id).first()
-
-@materials_invoice.field("debts")
-def resolve_invoice_debts(obj, *_):
-    return Debt.query.filter_by(invoice_id=obj.id).all()
 
 @transaction.field("invoice")
 def resolve_transaction_invoice(obj, *_):
