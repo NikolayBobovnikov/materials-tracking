@@ -29,10 +29,12 @@
   },
   "scripts": {
     "start": "npm run relay && react-scripts start",
-    "build": "npm run relay && react-scripts build",
+    "build": "npm run type-check && npm run lint && npm run relay && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "relay": "relay-compiler"
+    "relay": "relay-compiler",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings=0"
   },
   "eslintConfig": {
     "extends": [
