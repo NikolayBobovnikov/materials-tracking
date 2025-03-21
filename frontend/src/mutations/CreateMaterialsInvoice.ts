@@ -43,13 +43,15 @@ export function createInvoice(
     invoiceDate: string;  // or Date
     baseAmount: number;
   },
-  onCompleted: (resp: CreateMaterialsInvoiceMutationResponse) => void,
+  onCompleted: (response: any, errors: readonly Error[] | null | undefined) => void,
   onError: (err: any) => void
 ) {
   return commitMutation(environment, {
     mutation: CreateMaterialsInvoiceMutation,
     variables: variables,
-    onCompleted,
+    onCompleted: (response, errors) => {
+      onCompleted(response as CreateMaterialsInvoiceMutationResponse, errors as readonly Error[] | null | undefined);
+    },
     onError,
   });
 } 
