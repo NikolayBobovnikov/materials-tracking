@@ -31,7 +31,7 @@ def main():
         python_exe = os.path.join("venv", "bin", "python")
     
     # First, make sure pip is up to date
-    run_command(f'"{pip_cmd}" install --upgrade pip')
+    run_command(f'"{python_exe}" -m pip install --upgrade pip')
     
     # Uninstall any potentially conflicting packages
     run_command(f'"{pip_cmd}" uninstall -y graphene graphene-sqlalchemy graphql-relay flask-graphql')
