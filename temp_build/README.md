@@ -57,9 +57,6 @@ npm test -- --watchAll=false
 ```bash
 # Basic type checking
 npm run type-check
-
-# Enhanced type checking (includes generated Relay types)
-npm run type-check-all
 ```
 
 ### Linting
@@ -152,7 +149,6 @@ This is the frontend for the Materials Tracking Module.
 We have implemented several key measures to ensure type safety and prevent build issues:
 
 1. **Enhanced Type Checking**
-   - Run `npm run type-check-all` to do extra validation of the generated Relay types
    - See `docs/TYPE-SAFETY.md` for complete type safety guidelines
 
 2. **CI/CD Pipeline**
@@ -176,7 +172,6 @@ We have implemented several key measures to ensure type safety and prevent build
 - `npm run build` - Build for production
 - `npm test` - Run tests
 - `npm run type-check` - Run TypeScript type checker
-- `npm run type-check-all` - Run enhanced type checking including generated files
 - `npm run lint` - Run ESLint
 - `npm run relay` - Run the Relay compiler
 - `npm run deploy` - Perform a clean production build

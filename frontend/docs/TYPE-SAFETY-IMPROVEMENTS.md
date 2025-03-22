@@ -108,14 +108,12 @@ Enhanced `scripts/deploy.sh` to:
 ### Enhanced Type Checking
 
 Created improved type checking scripts:
-- `scripts/type-check-all.js`: Performs full type checking including generated Relay types
 - `scripts/fix-test-imports.js`: Automatically fixes import paths in test files
 
 Added npm scripts to package.json:
 ```json
 "scripts": {
   "type-check": "tsc --noEmit",
-  "type-check-all": "node scripts/type-check-all.js",
   "fix-test-imports": "node scripts/fix-test-imports.js"
 }
 ```

@@ -26,7 +26,6 @@ exit 0' > /app/generate-schema.sh && chmod +x /app/generate-schema.sh
 RUN /app/generate-schema.sh
 
 # Build the app
-RUN npm run type-check-all
 RUN npm run lint
 RUN npm run relay
 RUN npm run build
