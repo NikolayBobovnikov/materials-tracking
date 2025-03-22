@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Cross-platform schema generation script
+ * Unified schema generation script that works across all environments
  * Works on Windows, macOS, Linux, and Docker
  */
 
@@ -14,123 +14,136 @@ const PROJECT_ROOT = path.resolve(FRONTEND_DIR, '..');
 const SCHEMA_FILE = path.join(FRONTEND_DIR, 'schema.graphql');
 const PLACEHOLDER_SCHEMA = 'type Query { _placeholder: String }';
 
-// Potential backend locations (in order of preference)
-const BACKEND_LOCATIONS = [
-  // Docker-specific paths
-  '/backend_mount',
-  '/backend',
-  // Relative paths that work locally and in various configurations
-  path.join(PROJECT_ROOT, 'backend'),
-  path.join(FRONTEND_DIR, '..', 'backend'),
-  '../backend'
-];
-
 // Determine if we're in Docker
-const isDocker = fs.existsSync('/.dockerenv') || 
-                (process.env.DOCKER_CONTAINER === 'true') ||
-                (process.env.RUNNING_IN_DOCKER === 'true');
+const isDocker = fs.existsSync('/.dockerenv');
+
+// Potential backend locations (in order of preference)
+const BACKEND_PATHS = isDocker
+  ? ['/backend_mount', '/backend', path.join(PROJECT_ROOT, 'backend')]
+  : [path.join(PROJECT_ROOT, 'backend')];
 
 /**
- * Check if Python command is python or python3
+ * Extracts schema directly from schema.py using regex
+ * @param {string} schemaPath Path to schema.py
+ * @returns {boolean} Success or failure
  */
-function getPythonCommand() {
+function extractSchemaDirectly(schemaPath) {
   try {
-    execSync('python3 --version', { stdio: 'ignore' });
-    return 'python3';
-  } catch (e) {
-    try {
-      execSync('python --version', { stdio: 'ignore' });
-      return 'python';
-    } catch (e2) {
-      console.error('❌ Error: Neither python nor python3 command is available');
-      return null;
+    console.log(`📄 Extracting schema directly from ${schemaPath}`);
+    const content = fs.readFileSync(schemaPath, 'utf8');
+    const match = content.match(/type_defs\s*=\s*"""([\s\S]*?)"""/);
+    
+    if (match && match[1]) {
+      fs.writeFileSync(SCHEMA_FILE, match[1], 'utf8');
+      console.log('✅ Schema extracted successfully via direct extraction');
+      return true;
     }
-  }
-}
-
-/**
- * Main function that tries to generate the schema from the backend
- */
-function generateSchema() {
-  console.log(`🔍 Running schema generation (${isDocker ? 'Docker' : 'Local'} environment)...`);
-
-  const pythonCmd = getPythonCommand();
-  if (!pythonCmd) {
-    handleMissingBackend();
+    
+    console.error('❌ Could not find schema definition in schema.py');
+    return false;
+  } catch (error) {
+    console.error(`❌ Error extracting schema: ${error.message}`);
     return false;
   }
-
-  // Try each backend location
-  for (const backendPath of BACKEND_LOCATIONS) {
-    const schemaGeneratorPath = path.join(backendPath, 'generate_schema.py');
-    
-    try {
-      if (fs.existsSync(schemaGeneratorPath)) {
-        console.log(`✅ Found backend at ${backendPath}`);
-        
-        // Save current directory
-        const currentDir = process.cwd();
-        
-        // Change to backend directory
-        process.chdir(backendPath);
-        
-        try {
-          // Run Python script
-          console.log(`🐍 Running ${pythonCmd} generate_schema.py`);
-          execSync(`${pythonCmd} generate_schema.py`, { stdio: 'inherit' });
-          
-          console.log('✅ Schema generated successfully');
-          // Restore original directory
-          process.chdir(currentDir);
-          return true;
-        } catch (e) {
-          console.error(`❌ Schema generation failed: ${e.message}`);
-          // Restore original directory
-          process.chdir(currentDir);
-          
-          if (isDocker) {
-            // In Docker, try the next location instead of failing
-            continue;
-          } else {
-            // In development, fail with error
-            process.exit(1);
-          }
-        }
-      }
-    } catch (e) {
-      // Path doesn't exist or can't be accessed, try next
-      continue;
-    }
-  }
-
-  // If we get here, no backend was found
-  handleMissingBackend();
-  return false;
 }
 
 /**
- * Handles the case when no backend is found or schema generation fails
+ * Runs the Python schema generator script
+ * @param {string} backendPath Path to backend directory
+ * @returns {boolean} Success or failure
  */
-function handleMissingBackend() {
-  console.warn('⚠️ Warning: No backend found with generate_schema.py');
+function runPythonGenerator(backendPath) {
+  const generateScriptPath = path.join(backendPath, 'generate_schema.py');
   
+  if (!fs.existsSync(generateScriptPath)) {
+    return false;
+  }
+  
+  try {
+    // Try to determine Python command
+    let pythonCmd = 'python3';
+    try {
+      execSync('python3 --version', { stdio: 'ignore' });
+    } catch (e) {
+      try {
+        execSync('python --version', { stdio: 'ignore' });
+        pythonCmd = 'python';
+      } catch (e2) {
+        console.error('❌ Neither python nor python3 command available');
+        return false;
+      }
+    }
+    
+    console.log(`🐍 Running ${pythonCmd} generate_schema.py`);
+    
+    // Save current directory
+    const currentDir = process.cwd();
+    
+    // Change to backend directory
+    process.chdir(backendPath);
+    
+    // Run Python script
+    const output = execSync(`${pythonCmd} generate_schema.py`, { encoding: 'utf8' });
+    console.log(output);
+    
+    // Restore original directory
+    process.chdir(currentDir);
+    
+    if (fs.existsSync(SCHEMA_FILE)) {
+      console.log('✅ Schema generated successfully via Python script');
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error(`❌ Python script error: ${error.message}`);
+    return false;
+  }
+}
+
+/**
+ * Main function to generate schema
+ */
+function generateSchema() {
+  console.log(`🔍 Generating GraphQL schema (${isDocker ? 'Docker' : 'Local'} environment)...`);
+  
+  // Try each backend path
+  for (const backendPath of BACKEND_PATHS) {
+    if (!fs.existsSync(backendPath)) {
+      continue;
+    }
+    
+    console.log(`📂 Found backend at ${backendPath}`);
+    
+    // Method 1: Try Python generator
+    if (runPythonGenerator(backendPath)) {
+      return true;
+    }
+    
+    // Method 2: Try direct extraction
+    const schemaPath = path.join(backendPath, 'schema.py');
+    if (fs.existsSync(schemaPath) && extractSchemaDirectly(schemaPath)) {
+      return true;
+    }
+  }
+  
+  // Check if schema already exists
   if (fs.existsSync(SCHEMA_FILE)) {
     console.log('📄 Using existing schema.graphql');
     return true;
-  } else {
-    console.warn('⚠️ No schema found and no backend available');
-    console.log('📝 Creating minimal placeholder schema');
-    
-    try {
-      fs.writeFileSync(SCHEMA_FILE, PLACEHOLDER_SCHEMA, 'utf8');
-      console.log(`✅ Created placeholder schema at ${SCHEMA_FILE}`);
-      return true;
-    } catch (e) {
-      console.error(`❌ Failed to create placeholder schema: ${e.message}`);
-      process.exit(1);
-    }
   }
+  
+  // Create a placeholder schema as last resort
+  console.log('⚠️ Creating minimal placeholder schema');
+  fs.writeFileSync(SCHEMA_FILE, PLACEHOLDER_SCHEMA, 'utf8');
+  return true;
 }
 
-// Run the script
-generateSchema(); 
+// Run the script and handle exit codes
+try {
+  const success = generateSchema();
+  process.exit(success ? 0 : 1);
+} catch (error) {
+  console.error(`❌ Unhandled error: ${error.message}`);
+  process.exit(1);
+} 

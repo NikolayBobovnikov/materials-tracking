@@ -8,6 +8,7 @@ services:
       - "5000:5000"
     environment:
       - SQLALCHEMY_DATABASE_URI=sqlite:///test.db
+      - FLASK_APP=app.py
     restart: unless-stopped
     volumes:
       - ./backend:/app
@@ -31,3 +32,5 @@ services:
       - backend
     volumes:
       - ./backend:/backend_mount:ro  # Mount backend as read-only for schema generation
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000/graphql

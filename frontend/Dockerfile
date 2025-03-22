@@ -12,11 +12,8 @@ RUN npm install
 # Copy the frontend source code
 COPY . .
 
-# Set Docker environment flag
-ENV DOCKER_CONTAINER=true
-
-# Run schema generation script with Node.js
-RUN node scripts/generate-schema.js || echo "Schema generation failed, continuing with build"
+# Run schema generation script
+RUN npm run schema
 
 # Build the app
 RUN npm run type-check-all

@@ -7,12 +7,15 @@ import os
 import sys
 
 # Ensure we can import the backend modules
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, current_dir)
+sys.path.insert(0, os.path.dirname(current_dir))
 
-from backend.schema import type_defs
+# Import from the local schema module
+from schema import type_defs
 
 # Write the schema to a file for frontend use
-frontend_schema_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'schema.graphql')
+frontend_schema_path = os.path.join(os.path.dirname(current_dir), 'frontend', 'schema.graphql')
 
 with open(frontend_schema_path, 'w') as f:
     f.write(type_defs)
