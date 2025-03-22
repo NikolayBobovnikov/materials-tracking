@@ -7,8 +7,8 @@ import type { InvoiceFormClientsSuppliersQuery } from './../__generated__/Invoic
 
 // Query for clients and suppliers with smaller initial batch
 const query = graphql`
-  query InvoiceFormClientsSuppliersQuery($clientsFirst: Int, $suppliersFirst: Int) {
-    clients(first: $clientsFirst) {
+  query InvoiceFormClientsSuppliersQuery($clientsFirst: Int, $suppliersFirst: Int, $clientsAfter: String, $suppliersAfter: String) {
+    clients(first: $clientsFirst, after: $clientsAfter) {
       edges {
         node {
           id
@@ -21,7 +21,7 @@ const query = graphql`
         endCursor
       }
     }
-    suppliers(first: $suppliersFirst) {
+    suppliers(first: $suppliersFirst, after: $suppliersAfter) {
       edges {
         node {
           id
@@ -108,18 +108,51 @@ interface MutationResponse {
   };
 }
 
+// Define a type that matches the actual query response structure
+type QueryResponse = {
+  clients: {
+    edges: Array<{
+      node: ClientNode;
+      cursor: string;
+    } | null> | null;
+    pageInfo: {
+      hasNextPage: boolean;
+      endCursor: string | null;
+    };
+  };
+  suppliers: {
+    edges: Array<{
+      node: SupplierNode;
+      cursor: string;
+    } | null> | null;
+    pageInfo: {
+      hasNextPage: boolean;
+      endCursor: string | null;
+    };
+  };
+};
+
 const InvoiceForm: React.FC = () => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<InvoiceFormInputs>();
-  const [loadMore, setLoadMore] = React.useState({ clients: false, suppliers: false });
+  const [clientsAfter, setClientsAfter] = React.useState<string | null>(null);
+  const [suppliersAfter, setSuppliersAfter] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   
-  // Load clients and suppliers data
-  const queryData = useLazyLoadQuery<InvoiceFormClientsSuppliersQuery>(
+  // Load clients and suppliers data with smaller initial batch
+  const data = useLazyLoadQuery<InvoiceFormClientsSuppliersQuery>(
     query, 
-    { clientsFirst: 50, suppliersFirst: 50 }
+    { 
+      clientsFirst: 10, 
+      suppliersFirst: 10,
+      clientsAfter,
+      suppliersAfter
+    }
   );
+  
+  // Cast the data to our expected structure
+  const queryData = data as unknown as QueryResponse;
   
   // Set up mutation
   const [commitMutation, isMutationInFlight] = useMutation(createInvoiceMutation);
@@ -130,7 +163,11 @@ const InvoiceForm: React.FC = () => {
   
   // Handle load more for clients or suppliers
   const handleLoadMore = (type: 'clients' | 'suppliers'): void => {
-    setLoadMore(prev => ({ ...prev, [type]: true }));
+    if (type === 'clients' && queryData.clients?.pageInfo.endCursor) {
+      setClientsAfter(queryData.clients.pageInfo.endCursor);
+    } else if (type === 'suppliers' && queryData.suppliers?.pageInfo.endCursor) {
+      setSuppliersAfter(queryData.suppliers.pageInfo.endCursor);
+    }
   };
 
   const onSubmit = async (formData: InvoiceFormInputs): Promise<void> => {
@@ -159,15 +196,30 @@ const InvoiceForm: React.FC = () => {
         setSuccess('Invoice created: ' + typedResponse?.createMaterialsInvoice?.invoice?.id);
         reset(); // Reset form fields
 
-        // Force a refetch of queries with a small delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        // Instead of reloading the page, refresh the query data
+        setClientsAfter(null);
+        setSuppliersAfter(null);
       },
       onError: (err: Error) => {
         setLoading(false);
         setError(err.message || 'Error creating invoice');
         console.error(err);
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      updater: (store: any) => {
+        const payload = store.getRootField('createMaterialsInvoice');
+        if (!payload) return;
+        
+        const invoice = payload.getLinkedRecord('invoice');
+        if (!invoice) return;
+        
+        // Instead of using ConnectionHandler, we'll just refresh the query data
+        // by setting a timeout to allow the component to show success first
+        setTimeout(() => {
+          // Reset pagination state to trigger a refetch
+          setClientsAfter(null);
+          setSuppliersAfter(null);
+        }, 1500);
       }
     });
   };
@@ -211,7 +263,7 @@ const InvoiceForm: React.FC = () => {
         ))}
       </TextField>
       
-      {queryData.clients?.pageInfo.hasNextPage && !loadMore.clients && (
+      {queryData.clients?.pageInfo.hasNextPage && !clientsAfter && (
         <FormHelperText>
           <Button onClick={() => handleLoadMore('clients')} size="small">
             Load more clients
@@ -238,7 +290,7 @@ const InvoiceForm: React.FC = () => {
         ))}
       </TextField>
       
-      {queryData.suppliers?.pageInfo.hasNextPage && !loadMore.suppliers && (
+      {queryData.suppliers?.pageInfo.hasNextPage && !suppliersAfter && (
         <FormHelperText>
           <Button onClick={() => handleLoadMore('suppliers')} size="small">
             Load more suppliers

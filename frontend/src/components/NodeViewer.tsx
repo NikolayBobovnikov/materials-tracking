@@ -33,12 +33,35 @@ const NODE_QUERY = graphql`
   }
 `;
 
+// Define a type that matches the actual structure of the data
+type NodeData = {
+  node: {
+    id: string;
+    name?: string;
+    markup_rate?: number;
+    base_amount?: number;
+    invoice_date?: string;
+    status?: string;
+    client?: {
+      id: string;
+      name: string;
+    };
+    supplier?: {
+      id: string;
+      name: string;
+    };
+  } | null;
+};
+
 // Separate component for fetching data
 const NodeDataDisplay: React.FC<{ id: string }> = ({ id }) => {
-  const data = useLazyLoadQuery<NodeViewerQuery>(
+  const response = useLazyLoadQuery<NodeViewerQuery>(
     NODE_QUERY,
     { id }
   );
+  
+  // Cast the response to our expected type
+  const data = response as unknown as NodeData;
   
   if (!data || !data.node) {
     return (
