@@ -2,8 +2,9 @@ FROM node:18.15.0-alpine AS builder
 
 WORKDIR /app
 
-# Install Python for schema generation
-RUN apk add --update --no-cache python3
+# Install Python and dependencies needed for schema generation
+RUN apk add --update --no-cache python3 py3-pip && \
+    pip3 install ariadne graphql-core sqlalchemy
 
 # Copy package files first (for better caching)
 COPY package*.json ./

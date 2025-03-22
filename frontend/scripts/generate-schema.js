@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Unified schema generation script that works across all environments
- * Works on Windows, macOS, Linux, and Docker
+ * Simple schema generation script that calls the backend Python script
+ * Works in both local development and Docker environments
  */
 
 const fs = require('fs');
@@ -12,7 +12,7 @@ const { execSync } = require('child_process');
 const FRONTEND_DIR = path.resolve(__dirname, '..');
 const PROJECT_ROOT = path.resolve(FRONTEND_DIR, '..');
 const SCHEMA_FILE = path.join(FRONTEND_DIR, 'schema.graphql');
-const PLACEHOLDER_SCHEMA = 'type Query { _placeholder: String }';
+const VERBOSE = process.env.VERBOSE === 'true';
 
 // Determine if we're in Docker
 const isDocker = fs.existsSync('/.dockerenv');
@@ -22,128 +22,105 @@ const BACKEND_PATHS = isDocker
   ? ['/backend_mount', '/backend', path.join(PROJECT_ROOT, 'backend')]
   : [path.join(PROJECT_ROOT, 'backend')];
 
+// Simple logging utilities
+const log = {
+  info: (message) => console.log(message),
+  success: (message) => console.log(`✅ ${message}`),
+  warning: (message) => console.log(`⚠️ ${message}`),
+  error: (message) => console.error(`❌ ${message}`),
+  debug: (message) => VERBOSE && console.log(`🔍 ${message}`)
+};
+
 /**
- * Extracts schema directly from schema.py using regex
- * @param {string} schemaPath Path to schema.py
- * @returns {boolean} Success or failure
+ * Gets the appropriate Python command for the current environment
+ * @returns {string|null} Python command or null if not available
  */
-function extractSchemaDirectly(schemaPath) {
+function getPythonCommand() {
   try {
-    console.log(`📄 Extracting schema directly from ${schemaPath}`);
-    const content = fs.readFileSync(schemaPath, 'utf8');
-    const match = content.match(/type_defs\s*=\s*"""([\s\S]*?)"""/);
-    
-    if (match && match[1]) {
-      fs.writeFileSync(SCHEMA_FILE, match[1], 'utf8');
-      console.log('✅ Schema extracted successfully via direct extraction');
-      return true;
+    execSync('python3 --version', { stdio: 'ignore' });
+    return 'python3';
+  } catch (e) {
+    try {
+      execSync('python --version', { stdio: 'ignore' });
+      return 'python';
+    } catch (e2) {
+      return null;
     }
-    
-    console.error('❌ Could not find schema definition in schema.py');
-    return false;
-  } catch (error) {
-    console.error(`❌ Error extracting schema: ${error.message}`);
-    return false;
   }
 }
 
 /**
- * Runs the Python schema generator script
- * @param {string} backendPath Path to backend directory
- * @returns {boolean} Success or failure
+ * Generate schema by running Python script
  */
-function runPythonGenerator(backendPath) {
+function generateSchema() {
+  log.info(`Generating GraphQL schema for ${isDocker ? 'Docker' : 'Local'} environment...`);
+  
+  // Get Python command
+  const pythonCmd = getPythonCommand();
+  if (!pythonCmd) {
+    log.error('Python not found. Please install Python 3.x');
+    return false;
+  }
+  
+  // Find backend
+  let backendPath = null;
+  for (const path of BACKEND_PATHS) {
+    if (fs.existsSync(path)) {
+      backendPath = path;
+      break;
+    }
+  }
+  
+  if (!backendPath) {
+    log.error('Backend directory not found');
+    return false;
+  }
+  
+  log.debug(`Found backend at ${backendPath}`);
   const generateScriptPath = path.join(backendPath, 'generate_schema.py');
   
   if (!fs.existsSync(generateScriptPath)) {
+    log.error(`generate_schema.py not found in ${backendPath}`);
     return false;
   }
+  
+  // Save current directory
+  const currentDir = process.cwd();
   
   try {
-    // Try to determine Python command
-    let pythonCmd = 'python3';
-    try {
-      execSync('python3 --version', { stdio: 'ignore' });
-    } catch (e) {
-      try {
-        execSync('python --version', { stdio: 'ignore' });
-        pythonCmd = 'python';
-      } catch (e2) {
-        console.error('❌ Neither python nor python3 command available');
-        return false;
-      }
-    }
-    
-    console.log(`🐍 Running ${pythonCmd} generate_schema.py`);
-    
-    // Save current directory
-    const currentDir = process.cwd();
-    
     // Change to backend directory
     process.chdir(backendPath);
+    log.info(`Running ${pythonCmd} generate_schema.py`);
     
     // Run Python script
-    const output = execSync(`${pythonCmd} generate_schema.py`, { encoding: 'utf8' });
-    console.log(output);
+    const stdio = VERBOSE ? 'inherit' : 'pipe';
+    const output = execSync(`${pythonCmd} generate_schema.py`, { encoding: 'utf8', stdio });
+    if (VERBOSE) {
+      log.debug(output);
+    }
     
-    // Restore original directory
-    process.chdir(currentDir);
-    
+    // Check if schema was generated
     if (fs.existsSync(SCHEMA_FILE)) {
-      console.log('✅ Schema generated successfully via Python script');
+      log.success('Schema generated successfully');
       return true;
+    } else {
+      log.error('Schema file was not created');
+      return false;
     }
-    
-    return false;
   } catch (error) {
-    console.error(`❌ Python script error: ${error.message}`);
+    log.error(`Failed to generate schema: ${error.message}`);
     return false;
+  } finally {
+    // Always restore original directory
+    process.chdir(currentDir);
   }
 }
 
-/**
- * Main function to generate schema
- */
-function generateSchema() {
-  console.log(`🔍 Generating GraphQL schema (${isDocker ? 'Docker' : 'Local'} environment)...`);
-  
-  // Try each backend path
-  for (const backendPath of BACKEND_PATHS) {
-    if (!fs.existsSync(backendPath)) {
-      continue;
-    }
-    
-    console.log(`📂 Found backend at ${backendPath}`);
-    
-    // Method 1: Try Python generator
-    if (runPythonGenerator(backendPath)) {
-      return true;
-    }
-    
-    // Method 2: Try direct extraction
-    const schemaPath = path.join(backendPath, 'schema.py');
-    if (fs.existsSync(schemaPath) && extractSchemaDirectly(schemaPath)) {
-      return true;
-    }
-  }
-  
-  // Check if schema already exists
-  if (fs.existsSync(SCHEMA_FILE)) {
-    console.log('📄 Using existing schema.graphql');
-    return true;
-  }
-  
-  // Create a placeholder schema as last resort
-  console.log('⚠️ Creating minimal placeholder schema');
-  fs.writeFileSync(SCHEMA_FILE, PLACEHOLDER_SCHEMA, 'utf8');
-  return true;
-}
-
-// Run the script and handle exit codes
+// Run the script
 try {
   const success = generateSchema();
   process.exit(success ? 0 : 1);
 } catch (error) {
-  console.error(`❌ Unhandled error: ${error.message}`);
+  log.error(`Unhandled error: ${error.message}`);
   process.exit(1);
 } 
