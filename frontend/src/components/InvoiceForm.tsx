@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { graphql, useLazyLoadQuery } from 'react-relay';
 import { useMutation } from 'react-relay/hooks';
 import type { InvoiceFormClientsSuppliersQuery } from './../__generated__/InvoiceFormClientsSuppliersQuery.graphql';
+import { RelayEnvironment, resetRelayEnvironment } from '../RelayEnvironment';
 
 // Query for clients and suppliers with smaller initial batch
 const query = graphql`
@@ -133,12 +134,17 @@ type QueryResponse = {
 };
 
 const InvoiceForm: React.FC = () => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<InvoiceFormInputs>();
+  const { register, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm<InvoiceFormInputs>();
   const [clientsAfter, setClientsAfter] = React.useState<string | null>(null);
   const [suppliersAfter, setSuppliersAfter] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
+  
+  // Reset the Relay environment when the component mounts
+  React.useEffect(() => {
+    resetRelayEnvironment();
+  }, []);
   
   // Load clients and suppliers data with smaller initial batch
   const data = useLazyLoadQuery<InvoiceFormClientsSuppliersQuery>(
@@ -148,32 +154,81 @@ const InvoiceForm: React.FC = () => {
       suppliersFirst: 10,
       clientsAfter,
       suppliersAfter
+    },
+    {
+      fetchPolicy: 'network-only' // Force network fetch, ignore cache
     }
   );
   
-  // Cast the data to our expected structure
-  const queryData = data as unknown as QueryResponse;
+  // Log the raw data from the query for debugging
+  console.log('===== RAW GRAPHQL RESPONSE =====');
+  console.log('Raw Data Type:', typeof data);
+  console.log('Raw Data Structure:', Object.keys(data || {}));
+  console.log('Raw Query Data:', JSON.stringify(data, null, 2));
+  console.log('Raw clients data:', data?.clients?.edges);
+  console.log('Raw suppliers data:', data?.suppliers?.edges);
   
-  // Set up mutation
-  const [commitMutation, isMutationInFlight] = useMutation(createInvoiceMutation);
+  // Process clients data
+  const clientsList = React.useMemo(() => {
+    if (!data?.clients?.edges || !Array.isArray(data.clients.edges)) {
+      console.error('No valid clients data found');
+      return [];
+    }
+    
+    return data.clients.edges
+      .filter((edge): edge is NonNullable<typeof edge> => Boolean(edge && edge.node))
+      .map(edge => ({
+        id: edge.node.id,
+        name: edge.node.name
+      }));
+  }, [data?.clients?.edges]);
   
-  // Extract clients and suppliers from query data
-  const clientsList = queryData.clients?.edges?.map(edge => edge?.node).filter(Boolean) as ClientNode[] || [];
-  const suppliersList = queryData.suppliers?.edges?.map(edge => edge?.node).filter(Boolean) as SupplierNode[] || [];
+  // Process suppliers data separately
+  const suppliersList = React.useMemo(() => {
+    if (!data?.suppliers?.edges || !Array.isArray(data.suppliers.edges)) {
+      console.error('No valid suppliers data found');
+      return [];
+    }
+    
+    return data.suppliers.edges
+      .filter((edge): edge is NonNullable<typeof edge> => Boolean(edge && edge.node))
+      .map(edge => ({
+        id: edge.node.id,
+        name: edge.node.name
+      }));
+  }, [data?.suppliers?.edges]);
+  
+  // Watch form values for debugging
+  const clientValue = watch("clientGlobalId");
+  const supplierValue = watch("supplierGlobalId");
+  
+  console.log('===== FORM VALUES =====');
+  console.log('Selected client ID:', clientValue);
+  console.log('Selected supplier ID:', supplierValue);
+  
+  // For debugging - log the final processed lists
+  console.log('===== FINAL PROCESSED DATA =====');
+  console.log('Clients list:', clientsList);
+  console.log('Suppliers list:', suppliersList);
   
   // Handle load more for clients or suppliers
   const handleLoadMore = (type: 'clients' | 'suppliers'): void => {
-    if (type === 'clients' && queryData.clients?.pageInfo.endCursor) {
-      setClientsAfter(queryData.clients.pageInfo.endCursor);
-    } else if (type === 'suppliers' && queryData.suppliers?.pageInfo.endCursor) {
-      setSuppliersAfter(queryData.suppliers.pageInfo.endCursor);
+    if (type === 'clients' && data?.clients?.pageInfo.endCursor) {
+      setClientsAfter(data.clients.pageInfo.endCursor);
+    } else if (type === 'suppliers' && data?.suppliers?.pageInfo.endCursor) {
+      setSuppliersAfter(data.suppliers.pageInfo.endCursor);
     }
   };
+
+  // Set up mutation
+  const [commitMutation, isMutationInFlight] = useMutation(createInvoiceMutation);
 
   const onSubmit = async (formData: InvoiceFormInputs): Promise<void> => {
     setSuccess(null);
     setError(null);
     setLoading(true);
+    
+    console.log('Form submission data:', formData);
     
     commitMutation({
       variables: {
@@ -205,7 +260,6 @@ const InvoiceForm: React.FC = () => {
         setError(err.message || 'Error creating invoice');
         console.error(err);
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       updater: (store: any) => {
         const payload = store.getRootField('createMaterialsInvoice');
         if (!payload) return;
@@ -213,8 +267,6 @@ const InvoiceForm: React.FC = () => {
         const invoice = payload.getLinkedRecord('invoice');
         if (!invoice) return;
         
-        // Instead of using ConnectionHandler, we'll just refresh the query data
-        // by setting a timeout to allow the component to show success first
         setTimeout(() => {
           // Reset pagination state to trigger a refetch
           setClientsAfter(null);
@@ -231,6 +283,12 @@ const InvoiceForm: React.FC = () => {
     >
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Create Materials Invoice</h2>
       
+      {/* Display debugging information */}
+      <div style={{ padding: '8px', margin: '8px 0', fontSize: '12px', border: '1px solid #eee' }}>
+        <div><strong>Clients loaded:</strong> {clientsList.length}</div>
+        <div><strong>Suppliers loaded:</strong> {suppliersList.length}</div>
+      </div>
+      
       {/* Display success or error message */}
       {success && (
         <Box sx={{ mb: 2, p: 2, bgcolor: '#e8f5e9', borderRadius: 1 }}>
@@ -244,6 +302,7 @@ const InvoiceForm: React.FC = () => {
         </Box>
       )}
       
+      {/* Client Dropdown */}
       <TextField
         select
         label="Client"
@@ -254,23 +313,17 @@ const InvoiceForm: React.FC = () => {
         helperText={errors.clientGlobalId ? "Required" : ""}
         {...register("clientGlobalId", { required: true })}
         className="mb-4"
+        inputProps={{ 'data-testid': 'client-select' }}
       >
         <MenuItem value="">Select a client</MenuItem>
-        {clientsList.map((c) => (
-          <MenuItem key={c.id} value={c.id}>
-            {c.name}
+        {clientsList.map((client) => (
+          <MenuItem key={`client-${client.id}`} value={client.id}>
+            {client.name} (ID: {client.id})
           </MenuItem>
         ))}
       </TextField>
       
-      {queryData.clients?.pageInfo.hasNextPage && !clientsAfter && (
-        <FormHelperText>
-          <Button onClick={() => handleLoadMore('clients')} size="small">
-            Load more clients
-          </Button>
-        </FormHelperText>
-      )}
-      
+      {/* Supplier Dropdown */}
       <TextField
         select
         label="Supplier"
@@ -281,22 +334,15 @@ const InvoiceForm: React.FC = () => {
         helperText={errors.supplierGlobalId ? "Required" : ""}
         {...register("supplierGlobalId", { required: true })}
         className="mb-4"
+        inputProps={{ 'data-testid': 'supplier-select' }}
       >
         <MenuItem value="">Select a supplier</MenuItem>
-        {suppliersList.map((s) => (
-          <MenuItem key={s.id} value={s.id}>
-            {s.name}
+        {suppliersList.map((supplier) => (
+          <MenuItem key={`supplier-${supplier.id}`} value={supplier.id}>
+            {supplier.name} (ID: {supplier.id})
           </MenuItem>
         ))}
       </TextField>
-      
-      {queryData.suppliers?.pageInfo.hasNextPage && !suppliersAfter && (
-        <FormHelperText>
-          <Button onClick={() => handleLoadMore('suppliers')} size="small">
-            Load more suppliers
-          </Button>
-        </FormHelperText>
-      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <TextField

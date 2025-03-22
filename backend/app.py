@@ -26,6 +26,7 @@ from models import db
 from ariadne import graphql_sync
 from ariadne.explorer import ExplorerGraphiQL
 from schema import schema
+from sqlalchemy import text
 
 def create_app():
     # Configure logging
@@ -61,8 +62,12 @@ def create_app():
         # Handle GraphQL queries
         data = request.get_json()
         
-        # Log the incoming GraphQL query
+        # Enhanced logging for debugging
+        logger.info("=" * 80)
+        logger.info("GraphQL Request from: %s", request.remote_addr)
+        logger.info("Request Headers: %s", dict(request.headers))
         logger.info("GraphQL Query: %s", data.get('query') if data else None)
+        logger.info("GraphQL Variables: %s", data.get('variables') if data else None)
         
         success, result = graphql_sync(
             schema,
@@ -71,9 +76,13 @@ def create_app():
             debug=app.debug
         )
         
-        # Log errors if any
-        if not success:
+        # Log response data
+        if success:
+            logger.info("GraphQL Response: %s", result)
+        else:
             logger.error("GraphQL Errors: %s", result.get('errors'))
+        
+        logger.info("=" * 80)
         
         status_code = 200 if success else 400
         return jsonify(result), status_code
@@ -85,8 +94,8 @@ def create_app():
         This validates that the application is running and the database is accessible.
         """
         try:
-            # Check database connection
-            db.session.execute('SELECT 1')
+            # Check database connection with proper text() wrapper
+            db.session.execute(text('SELECT 1'))
             return jsonify({
                 "status": "healthy",
                 "message": "Application is running and database is accessible"

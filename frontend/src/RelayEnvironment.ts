@@ -24,10 +24,15 @@ const fetchQuery = (
   variables: Record<string, unknown>,
 ): Promise<GraphQLResponse> => {
   const operation = request as { text: string | null | undefined };
-  return fetch('http://localhost:5000/graphql', {
+  
+  // Use a relative path instead of absolute localhost URL
+  return fetch('/graphql', {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
+      'pragma': 'no-cache',
+      'cache-control': 'no-cache, no-store, must-revalidate',
+      'expires': '0'
     },
     body: JSON.stringify({
       query: operation.text, // GraphQL text from Relay
@@ -39,4 +44,17 @@ const fetchQuery = (
 export const RelayEnvironment = new Environment({
   network: Network.create(fetchQuery),
   store: new Store(new RecordSource()),
-}); 
+});
+
+// Function to recreate the environment and clear all caches
+export function resetRelayEnvironment(): void {
+  // Create a new source and store
+  const source = new RecordSource();
+  const store = new Store(source);
+  
+  // Update the environment with the new store
+  Object.assign(RelayEnvironment, {
+    store,
+    network: Network.create(fetchQuery),
+  });
+} 
