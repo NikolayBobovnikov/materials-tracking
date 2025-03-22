@@ -29,12 +29,11 @@
   },
   "scripts": {
     "start": "npm run relay && craco start",
-    "build": "npm run type-check && npm run lint && npm run schema && npm run relay && craco build",
-    "dev": "npm run schema && npm run relay && craco start",
+    "build": "npm run type-check && npm run lint && npm run relay && craco build",
+    "dev": "npm run relay && craco start",
     "test": "craco test",
     "eject": "react-scripts eject",
     "relay": "relay-compiler",
-    "schema": "node scripts/generate-schema.js",
     "type-check": "tsc --noEmit",
     "type-check-all": "node scripts/type-check-all.js",
     "lint": "eslint src --ext .ts,.tsx --max-warnings=0"

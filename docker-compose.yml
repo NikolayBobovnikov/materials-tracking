@@ -21,16 +21,12 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - GENERATE_SCHEMA=true
+      context: .
+      dockerfile: ./frontend/Dockerfile
     ports:
       - "3000:80"
     restart: unless-stopped
     depends_on:
       - backend
-    volumes:
-      - ./backend:/backend_mount:ro  # Mount backend as read-only for schema generation
     environment:
       - REACT_APP_API_URL=http://localhost:5000/graphql

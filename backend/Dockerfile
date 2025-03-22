@@ -9,6 +9,9 @@ COPY requirements.txt ./
 RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . .
 
+# Generate GraphQL schema in the backend directory
+RUN python generate_schema.py
+
 # Set PYTHONPATH to include the current directory
 ENV PYTHONPATH=/app
 ENV FLASK_APP=app.py
