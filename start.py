@@ -18,10 +18,8 @@ def run_backend():
 
 def run_frontend():
     os.chdir('frontend')
-    if platform.system() == "Windows":
-        subprocess.run(["node", "run.js"], check=True)
-    else:
-        subprocess.run(["node", "run.js"], check=True)
+    # Run npm start directly instead of using run.js
+    subprocess.run(["npm", "start"], check=True)
 
 def setup_backend():
     print("Setting up backend...")
