@@ -113,7 +113,7 @@ const NodeViewer: React.FC = () => {
           select
           label="Node Type"
           value={nodeType}
-          onChange={(e) => {
+          onChange={(e): void => {
             setNodeType(e.target.value);
             setFetchedId(null);
           }}
@@ -132,7 +132,7 @@ const NodeViewer: React.FC = () => {
         <TextField
           label="ID"
           value={nodeId}
-          onChange={(e) => {
+          onChange={(e): void => {
             setNodeId(e.target.value);
             setFetchedId(null);
           }}

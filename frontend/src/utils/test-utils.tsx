@@ -82,23 +82,46 @@ export const mockTransactions = {
 };
 
 // Create a mock Relay environment
-const createMockEnvironment = () => ({
-  retain: jest.fn(),
-  lookup: jest.fn(),
-  check: jest.fn(),
-  subscribe: jest.fn(),
-  getStore: jest.fn(),
-  execute: jest.fn(),
-  applyUpdate: jest.fn(),
-  replayOperation: jest.fn(),
-  replaceOperation: jest.fn(),
-});
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const createMockEnvironment = () => {
+  return {
+    retain: jest.fn(),
+    lookup: jest.fn(),
+    check: jest.fn(),
+    subscribe: jest.fn(),
+    getStore: jest.fn(),
+    execute: jest.fn(),
+    applyUpdate: jest.fn(),
+    replayOperation: jest.fn(),
+    replaceOperation: jest.fn(),
+    options: {},
+    applyMutation: jest.fn(),
+    commitUpdate: jest.fn(),
+    commitPayload: jest.fn(),
+    isServer: false,
+    isRequestActive: jest.fn(() => false),
+    isActive: jest.fn(() => true),
+    request: jest.fn(() => ({ dispose: jest.fn() })),
+    executeMutation: jest.fn(() => Promise.resolve()),
+    commitLocalUpdate: jest.fn(),
+    getNetwork: jest.fn(),
+    getOperationTracker: jest.fn(),
+    executeWithSource: jest.fn(),
+    requiredFieldLogger: jest.fn(),
+    getDataID: jest.fn(() => ''),
+    isStringIntDuringModernization: jest.fn(() => false)
+  } as any; // Type assertion to avoid type errors
+};
+/* eslint-enable @typescript-eslint/explicit-function-return-type */
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Custom renderer with wrapped providers
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   relayEnvironment?: ReturnType<typeof createMockEnvironment>;
 }
 
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 export function renderWithProviders(
   ui: ReactElement,
   { 

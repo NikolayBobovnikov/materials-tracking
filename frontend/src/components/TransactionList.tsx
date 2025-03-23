@@ -37,7 +37,7 @@ const TransactionList: React.FC = () => {
       variables={{ first: 10 }}
       title="Transactions"
       connectionPath="transactions"
-      renderItem={(node) => (
+      renderItem={(node): JSX.Element => (
         <>
           <TableCell>{node.id}</TableCell>
           <TableCell>${node.amount.toFixed(2)}</TableCell>

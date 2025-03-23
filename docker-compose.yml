@@ -21,12 +21,19 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: ./frontend/Dockerfile
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "3000:3000"
     restart: unless-stopped
     depends_on:
       - backend
     environment:
       - REACT_APP_API_URL=http://localhost:5000/graphql
+      - CI=true
+    volumes:
+      - ./frontend:/app
+      - node_modules:/app/node_modules
+
+volumes:
+  node_modules:

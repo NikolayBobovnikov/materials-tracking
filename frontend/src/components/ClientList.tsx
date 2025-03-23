@@ -37,7 +37,7 @@ const ClientList: React.FC = () => {
       variables={{ first: 10 }}
       title="Clients"
       connectionPath="clients"
-      renderItem={(node) => (
+      renderItem={(node): JSX.Element => (
         <>
           <TableCell>{node.id}</TableCell>
           <TableCell>{node.name}</TableCell>

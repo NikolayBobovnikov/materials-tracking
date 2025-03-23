@@ -39,7 +39,7 @@ const DebtList: React.FC = () => {
       variables={{ first: 10 }}
       title="Debts"
       connectionPath="debts"
-      renderItem={(node) => (
+      renderItem={(node): JSX.Element => (
         <>
           <TableCell>{node.id}</TableCell>
           <TableCell>{node.party}</TableCell>
