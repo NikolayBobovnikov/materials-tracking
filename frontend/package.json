@@ -40,7 +40,7 @@
     "eject": "react-scripts eject",
     "relay": "relay-compiler",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings=0"
   },
   "eslintConfig": {
     "extends": [
