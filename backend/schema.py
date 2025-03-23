@@ -249,19 +249,19 @@ def resolve_materials_invoice_status(obj, *_):
 
 @materials_invoice.field("baseAmount")
 def resolve_materials_invoice_base_amount(obj, *_):
-    return f"{float(obj.baseAmount):.2f}"
+    return float(obj.baseAmount)
 
 @client.field("markup_rate")
 def resolve_client_markup_rate(obj, *_):
-    return f"{float(obj.markup_rate):.2f}"
+    return float(obj.markup_rate)
 
 @transaction.field("amount")
 def resolve_transaction_amount(obj, *_):
-    return f"{float(obj.amount):.2f}"
+    return float(obj.amount)
 
 @debt.field("amount")
 def resolve_debt_amount(obj, *_):
-    return f"{float(obj.amount):.2f}"
+    return float(obj.amount)
 
 # Mutation resolvers
 @mutation.field("createMaterialsInvoice")
