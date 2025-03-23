@@ -50,7 +50,7 @@ trap cleanup EXIT
 
 # Generate schema.graphql file first
 echo "🔄 Generating GraphQL schema..."
-docker-compose up -d backend
+docker-compose up -d --build backend
 sleep 5
 docker-compose exec backend python generate_schema.py
 docker cp $(docker-compose ps -q backend):/app/schema.graphql ./frontend/
