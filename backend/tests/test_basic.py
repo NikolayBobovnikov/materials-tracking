@@ -30,8 +30,8 @@ def test_models(app_context, populated_db):
     invoice = MaterialsInvoice(
         client_id=client.id,
         supplier_id=supplier.id,
-        invoice_date=datetime.utcnow(),
-        base_amount=Decimal('100.00'),
+        invoiceDate=datetime.utcnow(),
+        baseAmount=Decimal('100.00'),
         status=InvoiceStatus.UNPAID
     )
     populated_db.session.add(invoice)
@@ -39,7 +39,7 @@ def test_models(app_context, populated_db):
     
     # Verify it was created
     assert invoice.id is not None
-    assert invoice.base_amount == Decimal('100.00')
+    assert invoice.baseAmount == Decimal('100.00')
 
 def test_invoice_validation(app_context, populated_db):
     """Test that invoice validation works properly."""
@@ -52,7 +52,7 @@ def test_invoice_validation(app_context, populated_db):
         invoice = MaterialsInvoice(
             client_id=client.id,
             supplier_id=supplier.id,
-            invoice_date=datetime.utcnow(),
-            base_amount=Decimal('-100.00'),
+            invoiceDate=datetime.utcnow(),
+            baseAmount=Decimal('-100.00'),
             status=InvoiceStatus.UNPAID
         ) 

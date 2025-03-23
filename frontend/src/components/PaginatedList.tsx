@@ -1,7 +1,7 @@
 import React from 'react';
 import { GraphQLTaggedNode } from 'relay-runtime';
 import { useLazyLoadQuery } from 'react-relay';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box, Button } from '@mui/material';
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box, Button, Alert } from '@mui/material';
 
 type Connection<T> = {
   edges: Array<{
@@ -23,20 +23,21 @@ type PaginatedListProps<T extends { id: string }> = {
   title?: string;
 };
 
-function PaginatedList<T extends { id: string }>({
+// Separate component for data fetching that always uses the hook
+function PaginatedListContent<T extends { id: string }>({
   query,
   variables,
   connectionPath,
   renderItem,
-  emptyMessage = "No items found",
-  title = "Items"
-}: PaginatedListProps<T>): React.ReactElement {
-  const [after, setAfter] = React.useState<string | null>(null);
-  const allVariables = { ...variables, after };
-
+  emptyMessage,
+  title,
+  after,
+  onLoadMore
+}: PaginatedListProps<T> & { after: string | null, onLoadMore: (cursor: string | null) => void }): React.ReactElement {
+  // Always call the hook at the top level
   const data = useLazyLoadQuery(
     query,
-    allVariables
+    { ...variables, after }
   ) as Record<string, unknown>;
 
   const connectionData = data[connectionPath] as unknown as Connection<T>;
@@ -52,7 +53,7 @@ function PaginatedList<T extends { id: string }>({
 
   const loadMore = (): void => {
     if (connectionData?.pageInfo.hasNextPage) {
-      setAfter(connectionData.pageInfo.endCursor);
+      onLoadMore(connectionData.pageInfo.endCursor);
     }
   };
 
@@ -86,6 +87,56 @@ function PaginatedList<T extends { id: string }>({
         </Button>
       )}
     </Box>
+  );
+}
+
+// Error boundary component
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode, title: string },
+  { hasError: boolean, error: string | null }
+> {
+  constructor(props: { children: React.ReactNode, title: string }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): { hasError: boolean, error: string } {
+    return {
+      hasError: true,
+      error: error.message
+    };
+  }
+
+  render(): React.ReactNode {
+    if (this.state.hasError) {
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6" gutterBottom>{this.props.title}</Typography>
+          <Alert severity="error">Failed to load data: {this.state.error}</Alert>
+        </Box>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Main component that manages state and error handling
+function PaginatedList<T extends { id: string }>(props: PaginatedListProps<T>): React.ReactElement {
+  const [after, setAfter] = React.useState<string | null>(null);
+  
+  const handleLoadMore = (cursor: string | null): void => {
+    setAfter(cursor);
+  };
+
+  return (
+    <ErrorBoundary title={props.title || "Items"}>
+      <PaginatedListContent
+        {...props}
+        after={after}
+        onLoadMore={handleLoadMore}
+      />
+    </ErrorBoundary>
   );
 }
 

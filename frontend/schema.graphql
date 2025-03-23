@@ -86,8 +86,8 @@
         id: ID!
         client: Client!
         supplier: Supplier!
-        invoice_date: String!
-        base_amount: Float!
+        invoiceDate: String!
+        baseAmount: Float!
         status: String!
         transaction: Transaction
         debts(first: Int, after: String): DebtConnection!
@@ -106,7 +106,7 @@
     type Transaction implements Node {
         id: ID!
         invoice: MaterialsInvoice!
-        transaction_date: String!
+        transactionDate: String!
         amount: Float!
     }
     
@@ -125,5 +125,5 @@
         invoice: MaterialsInvoice!
         party: String!
         amount: Float!
-        created_date: String!
+        createdDate: String!
     }

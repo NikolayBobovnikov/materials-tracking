@@ -62,8 +62,8 @@ const createInvoiceMutation = graphql`
           id
           name
         }
-        invoice_date
-        base_amount
+        invoiceDate
+        baseAmount
         status
       }
       errors
@@ -91,8 +91,8 @@ interface MutationResponse {
         id: string;
         name: string;
       };
-      invoice_date: string;
-      base_amount: number;
+      invoiceDate: string;
+      baseAmount: number;
       status: string;
     };
     errors: string[] | null;

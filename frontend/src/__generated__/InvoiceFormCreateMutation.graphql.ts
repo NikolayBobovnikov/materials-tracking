@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<725a4608b31db18b75fc3140dd83bdd6>>
+ * @generated SignedSource<<7bb2c9da097b37d2fbd9821e47022daf>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -19,13 +19,13 @@ export type InvoiceFormCreateMutation$data = {
   readonly createMaterialsInvoice: {
     readonly errors: ReadonlyArray<string | null> | null;
     readonly invoice: {
-      readonly base_amount: number;
+      readonly baseAmount: number;
       readonly client: {
         readonly id: string;
         readonly name: string;
       };
       readonly id: string;
-      readonly invoice_date: string;
+      readonly invoiceDate: string;
       readonly status: string;
       readonly supplier: {
         readonly id: string;
@@ -140,14 +140,14 @@ v6 = [
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "invoice_date",
+            "name": "invoiceDate",
             "storageKey": null
           },
           {
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "base_amount",
+            "name": "baseAmount",
             "storageKey": null
           },
           {
@@ -199,16 +199,16 @@ return {
     "selections": (v6/*: any*/)
   },
   "params": {
-    "cacheID": "c0f41cb0916da13018a66b3e696dfd73",
+    "cacheID": "4f12eec26a5645cc722f51726c9729b0",
     "id": null,
     "metadata": {},
     "name": "InvoiceFormCreateMutation",
     "operationKind": "mutation",
-    "text": "mutation InvoiceFormCreateMutation(\n  $clientId: ID!\n  $supplierId: ID!\n  $invoiceDate: String!\n  $baseAmount: Float!\n) {\n  createMaterialsInvoice(clientId: $clientId, supplierId: $supplierId, invoiceDate: $invoiceDate, baseAmount: $baseAmount) {\n    invoice {\n      id\n      client {\n        id\n        name\n      }\n      supplier {\n        id\n        name\n      }\n      invoice_date\n      base_amount\n      status\n    }\n    errors\n  }\n}\n"
+    "text": "mutation InvoiceFormCreateMutation(\n  $clientId: ID!\n  $supplierId: ID!\n  $invoiceDate: String!\n  $baseAmount: Float!\n) {\n  createMaterialsInvoice(clientId: $clientId, supplierId: $supplierId, invoiceDate: $invoiceDate, baseAmount: $baseAmount) {\n    invoice {\n      id\n      client {\n        id\n        name\n      }\n      supplier {\n        id\n        name\n      }\n      invoiceDate\n      baseAmount\n      status\n    }\n    errors\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "27460b30bd61a377f2d091cc3f3f1ca5";
+(node as any).hash = "5b01c820819b8d06e1e59e83d2c38a16";
 
 export default node;

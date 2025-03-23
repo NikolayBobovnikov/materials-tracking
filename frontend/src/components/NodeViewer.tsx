@@ -17,8 +17,8 @@ const NODE_QUERY = graphql`
         name
       }
       ... on MaterialsInvoice {
-        base_amount
-        invoice_date
+        baseAmount
+        invoiceDate
         status
         client {
           id
@@ -39,8 +39,8 @@ type NodeData = {
     id: string;
     name?: string;
     markup_rate?: number;
-    base_amount?: number;
-    invoice_date?: string;
+    baseAmount?: number;
+    invoiceDate?: string;
     status?: string;
     client?: {
       id: string;

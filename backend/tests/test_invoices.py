@@ -36,7 +36,7 @@ def test_create_materials_invoice(app, client, app_context, populated_db):
             ) {
                 invoice {
                     id
-                    base_amount
+                    baseAmount
                     status
                 }
                 errors
@@ -56,18 +56,18 @@ def test_create_materials_invoice(app, client, app_context, populated_db):
     invoice = MaterialsInvoice(
         client_id=db_client.id,
         supplier_id=supplier.id,
-        invoice_date=datetime.utcnow(),
-        base_amount=Decimal('200.00'),
+        invoiceDate=datetime.utcnow(),
+        baseAmount=Decimal('200.00'),
         status=InvoiceStatus.UNPAID
     )
     populated_db.session.add(invoice)
     populated_db.session.flush()
     
     # Create transaction
-    transaction_amount = invoice.base_amount * (Decimal('1') + db_client.markup_rate)
+    transaction_amount = invoice.baseAmount * (Decimal('1') + db_client.markup_rate)
     transaction = Transaction(
         invoice_id=invoice.id,
-        transaction_date=datetime.utcnow(),
+        transactionDate=datetime.utcnow(),
         amount=transaction_amount
     )
     populated_db.session.add(transaction)
@@ -77,13 +77,13 @@ def test_create_materials_invoice(app, client, app_context, populated_db):
         invoice_id=invoice.id,
         party="client",
         amount=transaction_amount,
-        created_date=datetime.utcnow()
+        createdDate=datetime.utcnow()
     )
     supplier_debt = Debt(
         invoice_id=invoice.id,
         party="supplier",
-        amount=invoice.base_amount,
-        created_date=datetime.utcnow()
+        amount=invoice.baseAmount,
+        createdDate=datetime.utcnow()
     )
     populated_db.session.add_all([client_debt, supplier_debt])
     populated_db.session.commit()
@@ -106,7 +106,7 @@ def test_validation_negative_amount(app_context, populated_db):
         invoice = MaterialsInvoice(
             client_id=client.id,
             supplier_id=supplier.id,
-            invoice_date=datetime.utcnow(),
-            base_amount=Decimal('-50.00'),
+            invoiceDate=datetime.utcnow(),
+            baseAmount=Decimal('-50.00'),
             status=InvoiceStatus.UNPAID
         ) 

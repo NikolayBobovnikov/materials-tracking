@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<831ac2687b121a20f73250ccdda743d6>>
+ * @generated SignedSource<<b555391522ce7a99e879f69ed1c44fc6>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -19,7 +19,7 @@ export type DebtListQuery$data = {
       readonly cursor: string;
       readonly node: {
         readonly amount: number;
-        readonly created_date: string;
+        readonly createdDate: string;
         readonly id: string;
         readonly party: string;
       };
@@ -107,7 +107,7 @@ v2 = [
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
-                "name": "created_date",
+                "name": "createdDate",
                 "storageKey": null
               }
             ],
@@ -176,16 +176,16 @@ return {
     "selections": (v2/*: any*/)
   },
   "params": {
-    "cacheID": "ef67881a83225d4a6255a49a54d382f0",
+    "cacheID": "21bf47c20f42def48325c31cc6165eed",
     "id": null,
     "metadata": {},
     "name": "DebtListQuery",
     "operationKind": "query",
-    "text": "query DebtListQuery(\n  $first: Int\n  $after: String\n) {\n  debts(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        party\n        amount\n        created_date\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
+    "text": "query DebtListQuery(\n  $first: Int\n  $after: String\n) {\n  debts(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        party\n        amount\n        createdDate\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "fd05d6340b68d4b03f6f1daf14650566";
+(node as any).hash = "8c1ad16e97fe4dca65dc9f8e2c002aca";
 
 export default node;

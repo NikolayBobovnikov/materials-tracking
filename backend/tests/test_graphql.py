@@ -43,8 +43,8 @@ def populated_db_with_invoices(app_context, populated_db):
     invoice = MaterialsInvoice(
         client_id=client.id,
         supplier_id=supplier.id,
-        invoice_date=date(2023, 4, 15),
-        base_amount=Decimal('500.00'),
+        invoiceDate=date(2023, 4, 15),
+        baseAmount=Decimal('500.00'),
         status=InvoiceStatus.UNPAID
     )
     db.session.add(invoice)
@@ -158,8 +158,8 @@ def test_query_invoices(client, populated_db_with_invoices):
         edges {
           node {
             id
-            invoice_date
-            base_amount
+            invoiceDate
+            baseAmount
             status
             client {
               id
@@ -193,12 +193,12 @@ def test_query_invoices(client, populated_db_with_invoices):
     # First invoice should have expected fields
     invoice_node = data['data']['invoices']['edges'][0]['node']
     assert 'id' in invoice_node
-    assert 'invoice_date' in invoice_node
-    assert 'base_amount' in invoice_node
+    assert 'invoiceDate' in invoice_node
+    assert 'baseAmount' in invoice_node
     assert 'status' in invoice_node
     assert 'client' in invoice_node
     assert 'supplier' in invoice_node
-    assert float(invoice_node['base_amount']) == 500.00
+    assert float(invoice_node['baseAmount']) == 500.00
     assert invoice_node['client']['name'] == 'Test Client'
     assert invoice_node['supplier']['name'] == 'Test Supplier'
 
@@ -214,7 +214,7 @@ def test_query_debts(client, populated_db_with_invoices):
             party
             invoice {
               id
-              base_amount
+              baseAmount
             }
           }
           cursor
@@ -245,7 +245,7 @@ def test_query_debts(client, populated_db_with_invoices):
     assert 'invoice' in debt_node
     assert float(debt_node['amount']) == 575.00
     assert debt_node['party'] == 'Client'
-    assert float(debt_node['invoice']['base_amount']) == 500.00
+    assert float(debt_node['invoice']['baseAmount']) == 500.00
 
 def test_query_transactions(client, populated_db_with_invoices):
     """Test querying transactions through GraphQL."""
@@ -258,7 +258,7 @@ def test_query_transactions(client, populated_db_with_invoices):
             amount
             invoice {
               id
-              base_amount
+              baseAmount
             }
           }
           cursor
@@ -287,7 +287,7 @@ def test_query_transactions(client, populated_db_with_invoices):
     assert 'amount' in transaction_node
     assert 'invoice' in transaction_node
     assert float(transaction_node['amount']) == 200.00
-    assert float(transaction_node['invoice']['base_amount']) == 500.00
+    assert float(transaction_node['invoice']['baseAmount']) == 500.00
 
 def test_create_materials_invoice_mutation(client, app, app_context):
     """Test creating a materials invoice through GraphQL mutation."""
@@ -322,8 +322,8 @@ def test_create_materials_invoice_mutation(client, app, app_context):
       ) {
         invoice {
           id
-          invoice_date
-          base_amount
+          invoiceDate
+          baseAmount
           status
           client {
             name
@@ -363,8 +363,8 @@ def test_create_materials_invoice_mutation(client, app, app_context):
     
     # Verify invoice data
     invoice = data['data']['createMaterialsInvoice']['invoice']
-    assert invoice['invoice_date'] == '2023-04-20'
-    assert float(invoice['base_amount']) == 750.50
+    assert invoice['invoiceDate'] == '2023-04-20'
+    assert float(invoice['baseAmount']) == 750.50
     assert invoice['status'] == 'UNPAID'
     assert invoice['client']['name'] == 'Test Client'
     assert invoice['supplier']['name'] == 'Test Supplier'

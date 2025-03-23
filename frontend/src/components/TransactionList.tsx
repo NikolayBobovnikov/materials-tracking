@@ -11,7 +11,7 @@ const query = graphql`
         node {
           id
           amount
-          transaction_date
+          transactionDate
         }
         cursor
       }
@@ -27,7 +27,7 @@ const query = graphql`
 type TransactionNode = {
   id: string;
   amount: number;
-  transaction_date: string;
+  transactionDate: string;
 };
 
 const TransactionList: React.FC = () => {
@@ -41,7 +41,7 @@ const TransactionList: React.FC = () => {
         <>
           <TableCell>{node.id}</TableCell>
           <TableCell>${node.amount.toFixed(2)}</TableCell>
-          <TableCell>{new Date(node.transaction_date).toLocaleDateString()}</TableCell>
+          <TableCell>{new Date(node.transactionDate).toLocaleDateString()}</TableCell>
         </>
       )}
     />

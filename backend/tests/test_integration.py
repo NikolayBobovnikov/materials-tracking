@@ -22,14 +22,14 @@ from app import create_app
 from models import db, Client, Supplier, MaterialsInvoice, Transaction, Debt, InvoiceStatus
 
 # Constants for integration tests
-API_URL = "http://localhost:5000"
+API_URL = "http://localhost:5001"
 FRONTEND_URL = "http://localhost:3000"
 GRAPHQL_ENDPOINT = "/graphql"
 
 class TestServer:
     """Server runner for integration tests."""
     
-    def __init__(self, app, port=5000):
+    def __init__(self, app, port=5001):
         self.app = app
         self.port = port
         self.server_thread = None
@@ -198,7 +198,7 @@ def test_basic_graphql_api(test_server):
     
     # Invoice should have been created
     invoice = data["data"]["createMaterialsInvoice"]["invoice"]
-    assert invoice["baseAmount"] == "888.88"
+    assert invoice["baseAmount"] == 888.88
     assert invoice["status"] == "UNPAID"
     
     # Verify that a debt was created automatically
@@ -208,7 +208,7 @@ def test_basic_graphql_api(test_server):
         edges {
           node {
             amount
-            materialsInvoice {
+            invoice {
               baseAmount
             }
           }
@@ -228,7 +228,7 @@ def test_basic_graphql_api(test_server):
     # Find the debt for our new invoice
     found_debt = False
     for edge in data["data"]["debts"]["edges"]:
-        if edge["node"]["materialsInvoice"]["baseAmount"] == "888.88":
+        if edge["node"]["invoice"]["baseAmount"] == 888.88:
             found_debt = True
             break
     
@@ -448,7 +448,7 @@ def test_complex_query(test_server):
         if "materialsInvoices" in client_node and client_node["materialsInvoices"]["edges"]:
             for invoice_edge in client_node["materialsInvoices"]["edges"]:
                 invoice_node = invoice_edge["node"]
-                if "baseAmount" in invoice_node and invoice_node["baseAmount"] == "999.99":
+                if "baseAmount" in invoice_node and invoice_node["baseAmount"] == 999.99:
                     found_invoice = True
                     break
     

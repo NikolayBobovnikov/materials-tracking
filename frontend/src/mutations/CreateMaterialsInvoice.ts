@@ -5,7 +5,7 @@ export type CreateMaterialsInvoiceMutationResponse = {
   createMaterialsInvoice: {
     invoice: {
       id: string;
-      base_amount: number;
+      baseAmount: number;
       __typename: string;
     };
     errors: string[] | null;
@@ -27,7 +27,7 @@ const mutation = graphql`
     ) {
       invoice {
         id
-        base_amount
+        baseAmount
         __typename
       }
       errors

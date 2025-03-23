@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<968ff417968af43ffa476a54c7e81d93>>
+ * @generated SignedSource<<51b03a8fc7f4d7752ee1c3fd965b911a>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -20,7 +20,7 @@ export type CreateMaterialsInvoiceMutation$data = {
     readonly errors: ReadonlyArray<string | null> | null;
     readonly invoice: {
       readonly __typename: "MaterialsInvoice";
-      readonly base_amount: number;
+      readonly baseAmount: number;
       readonly id: string;
     } | null;
   };
@@ -100,7 +100,7 @@ v4 = [
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "base_amount",
+            "name": "baseAmount",
             "storageKey": null
           },
           {
@@ -152,16 +152,16 @@ return {
     "selections": (v4/*: any*/)
   },
   "params": {
-    "cacheID": "08c26f0936828878e28418d6ffa39cdd",
+    "cacheID": "4653ac9f56b7fb4fed3e018531bb76a3",
     "id": null,
     "metadata": {},
     "name": "CreateMaterialsInvoiceMutation",
     "operationKind": "mutation",
-    "text": "mutation CreateMaterialsInvoiceMutation(\n  $clientId: ID!\n  $supplierId: ID!\n  $invoiceDate: String!\n  $baseAmount: Float!\n) {\n  createMaterialsInvoice(clientId: $clientId, supplierId: $supplierId, invoiceDate: $invoiceDate, baseAmount: $baseAmount) {\n    invoice {\n      id\n      base_amount\n      __typename\n    }\n    errors\n  }\n}\n"
+    "text": "mutation CreateMaterialsInvoiceMutation(\n  $clientId: ID!\n  $supplierId: ID!\n  $invoiceDate: String!\n  $baseAmount: Float!\n) {\n  createMaterialsInvoice(clientId: $clientId, supplierId: $supplierId, invoiceDate: $invoiceDate, baseAmount: $baseAmount) {\n    invoice {\n      id\n      baseAmount\n      __typename\n    }\n    errors\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "215b2adac7c3b441ab2c0dc6e9767785";
+(node as any).hash = "a70f01fc0b2ab300dfe5289c32ee1c83";
 
 export default node;

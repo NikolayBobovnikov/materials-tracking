@@ -69,18 +69,18 @@ def test_decimal_types(app, init_database):
         invoice = MaterialsInvoice(
             client_id=client.id,
             supplier_id=supplier.id,
-            base_amount=Decimal('123.45'),
+            baseAmount=Decimal('123.45'),
             status=InvoiceStatus.UNPAID
         )
         db.session.add(invoice)
         db.session.flush()
         
-        # Verify invoice base_amount is a Decimal
-        assert isinstance(invoice.base_amount, Decimal)
-        assert invoice.base_amount == Decimal('123.45')
+        # Verify invoice baseAmount is a Decimal
+        assert isinstance(invoice.baseAmount, Decimal)
+        assert invoice.baseAmount == Decimal('123.45')
         
         # Create a transaction with a calculated amount
-        transaction_amount = invoice.base_amount * (Decimal('1') + client.markup_rate)
+        transaction_amount = invoice.baseAmount * (Decimal('1') + client.markup_rate)
         transaction = Transaction(
             invoice_id=invoice.id,
             amount=transaction_amount
@@ -97,7 +97,7 @@ def test_decimal_types(app, init_database):
         supplier_debt = Debt(
             invoice_id=invoice.id,
             party="supplier",
-            amount=invoice.base_amount
+            amount=invoice.baseAmount
         )
         
         db.session.add_all([client_debt, supplier_debt])
@@ -105,8 +105,8 @@ def test_decimal_types(app, init_database):
         
         # Retrieve objects from database and verify decimal types
         retrieved_invoice = db.session.query(MaterialsInvoice).filter_by(id=invoice.id).first()
-        assert isinstance(retrieved_invoice.base_amount, Decimal)
-        assert retrieved_invoice.base_amount == Decimal('123.45')
+        assert isinstance(retrieved_invoice.baseAmount, Decimal)
+        assert retrieved_invoice.baseAmount == Decimal('123.45')
         
         retrieved_transaction = db.session.query(Transaction).filter_by(id=transaction.id).first()
         assert isinstance(retrieved_transaction.amount, Decimal)
@@ -129,11 +129,11 @@ def test_decimal_calculations(app, init_database):
         supplier = db.session.query(Supplier).filter_by(id=supplier_id).first()
         
         # Test a specific calculation
-        base_amount = Decimal('123.45')
+        baseAmount = Decimal('123.45')
         markup_rate = Decimal('0.15')
         
         # Calculate the expected result
-        expected_amount = base_amount * (Decimal('1') + markup_rate)
+        expected_amount = baseAmount * (Decimal('1') + markup_rate)
         # Note: The expected is 141.9675, but with 2 decimal places it would be 141.97
         expected_rounded = Decimal(str(expected_amount)).quantize(Decimal('0.01'))
         
@@ -141,14 +141,14 @@ def test_decimal_calculations(app, init_database):
         invoice = MaterialsInvoice(
             client_id=client.id,
             supplier_id=supplier.id,
-            base_amount=base_amount,
+            baseAmount=baseAmount,
             status=InvoiceStatus.UNPAID
         )
         db.session.add(invoice)
         db.session.flush()
         
         # Calculate transaction amount
-        transaction_amount = invoice.base_amount * (Decimal('1') + client.markup_rate)
+        transaction_amount = invoice.baseAmount * (Decimal('1') + client.markup_rate)
         transaction = Transaction(
             invoice_id=invoice.id,
             amount=transaction_amount
@@ -160,7 +160,7 @@ def test_decimal_calculations(app, init_database):
         assert transaction.amount.quantize(Decimal('0.01')) == expected_rounded
         
         # Log the values for debugging
-        print(f"Base amount: {base_amount}")
+        print(f"Base amount: {baseAmount}")
         print(f"Markup rate: {markup_rate}")
         print(f"Expected raw: {expected_amount}")
         print(f"Expected rounded: {expected_rounded}")

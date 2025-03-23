@@ -33,8 +33,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('client_id', sa.Integer(), nullable=False),
     sa.Column('supplier_id', sa.Integer(), nullable=False),
-    sa.Column('invoice_date', sa.DateTime(), nullable=True),
-    sa.Column('base_amount', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('invoiceDate', sa.DateTime(), nullable=True),
+    sa.Column('baseAmount', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('status', sa.Enum('DRAFT', 'PENDING', 'PAID', 'UNPAID', name='invoicestatus'), nullable=False),
     sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
     sa.ForeignKeyConstraint(['supplier_id'], ['suppliers.id'], ),
@@ -45,14 +45,14 @@ def upgrade():
     sa.Column('invoice_id', sa.Integer(), nullable=False),
     sa.Column('party', sa.String(length=50), nullable=False),
     sa.Column('amount', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('created_date', sa.DateTime(), nullable=True),
+    sa.Column('createdDate', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['invoice_id'], ['materials_invoices.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('transactions',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('invoice_id', sa.Integer(), nullable=False),
-    sa.Column('transaction_date', sa.DateTime(), nullable=True),
+    sa.Column('transactionDate', sa.DateTime(), nullable=True),
     sa.Column('amount', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.ForeignKeyConstraint(['invoice_id'], ['materials_invoices.id'], ),
     sa.PrimaryKeyConstraint('id')

@@ -101,7 +101,7 @@ below is an app implementation, and code review with refactoring plan aming to i
         setError(result.errors.join(', '));
         return;
       }
-      setSuccess(`Invoice ${result.invoice.id} created: Client ${result.invoice.client.name}, Supplier ${result.invoice.supplier.name}, Amount ${result.invoice.base_amount}`);
+      setSuccess(`Invoice ${result.invoice.id} created: Client ${result.invoice.client.name}, Supplier ${result.invoice.supplier.name}, Amount ${result.invoice.baseAmount}`);
       reset();
     },
     ```
@@ -668,8 +668,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('client_id', sa.Integer(), nullable=False),
     sa.Column('supplier_id', sa.Integer(), nullable=False),
-    sa.Column('invoice_date', sa.DateTime(), nullable=True),
-    sa.Column('base_amount', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('invoiceDate', sa.DateTime(), nullable=True),
+    sa.Column('baseAmount', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('status', sa.Enum('DRAFT', 'PENDING', 'PAID', 'UNPAID', name='invoicestatus'), nullable=False),
     sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
     sa.ForeignKeyConstraint(['supplier_id'], ['suppliers.id'], ),
@@ -680,14 +680,14 @@ def upgrade():
     sa.Column('invoice_id', sa.Integer(), nullable=False),
     sa.Column('party', sa.String(length=50), nullable=False),
     sa.Column('amount', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('created_date', sa.DateTime(), nullable=True),
+    sa.Column('createdDate', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['invoice_id'], ['materials_invoices.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('transactions',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('invoice_id', sa.Integer(), nullable=False),
-    sa.Column('transaction_date', sa.DateTime(), nullable=True),
+    sa.Column('transactionDate', sa.DateTime(), nullable=True),
     sa.Column('amount', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.ForeignKeyConstraint(['invoice_id'], ['materials_invoices.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -754,8 +754,8 @@ class MaterialsInvoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
     supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'), nullable=False)
-    invoice_date = db.Column(db.DateTime, default=datetime.utcnow)
-    base_amount = db.Column(Numeric(10, 2), nullable=False)
+    invoiceDate = db.Column(db.DateTime, default=datetime.utcnow)
+    baseAmount = db.Column(Numeric(10, 2), nullable=False)
     status = db.Column(db.Enum(InvoiceStatus), default=InvoiceStatus.UNPAID, nullable=False)
 
     # One-to-one relationship with Transaction
@@ -767,19 +767,19 @@ class MaterialsInvoice(db.Model):
     def __init__(self, **kwargs):
         """Initialize with validation."""
         super(MaterialsInvoice, self).__init__(**kwargs)
-        if 'base_amount' in kwargs and kwargs['base_amount'] <= 0:
+        if 'baseAmount' in kwargs and kwargs['baseAmount'] <= 0:
             raise ValueError("Base amount must be a positive number")
     
     def __repr__(self) -> str:
         """String representation of MaterialsInvoice."""
-        return f"<MaterialsInvoice id={self.id} amount={self.base_amount} status={self.status.name}>"
+        return f"<MaterialsInvoice id={self.id} amount={self.baseAmount} status={self.status.name}>"
 
 class Transaction(db.Model):
     """Transaction model for financial exchanges."""
     __tablename__ = 'transactions'
     id = db.Column(db.Integer, primary_key=True)
     invoice_id = db.Column(db.Integer, db.ForeignKey('materials_invoices.id'), nullable=False)
-    transaction_date = db.Column(db.DateTime, default=datetime.utcnow)
+    transactionDate = db.Column(db.DateTime, default=datetime.utcnow)
     amount = db.Column(Numeric(10, 2), nullable=False)
     
     def __repr__(self) -> str:
@@ -793,7 +793,7 @@ class Debt(db.Model):
     invoice_id = db.Column(db.Integer, db.ForeignKey('materials_invoices.id'), nullable=False)
     party = db.Column(db.String(50), nullable=False)
     amount = db.Column(Numeric(10, 2), nullable=False)
-    created_date = db.Column(db.DateTime, default=datetime.utcnow)
+    createdDate = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self) -> str:
         """String representation of Debt."""
@@ -809,7 +809,7 @@ GraphQL Resolvers for Financial Management Application
 This module defines all the GraphQL resolvers used by the Ariadne schema-first implementation.
 It includes resolvers for all types, fields, queries, and mutations.
 
-All financial values (like markup_rate, base_amount, amount) are stored as Decimal types
+All financial values (like markup_rate, baseAmount, amount) are stored as Decimal types
 in the database but converted to float for GraphQL compatibility.
 
 Key components:
@@ -873,10 +873,10 @@ def resolve_invoice_client(invoice, info):
 def resolve_invoice_supplier(invoice, info):
     return Supplier.query.filter_by(id=invoice.supplier_id).first()
 
-@materials_invoice_type.field("base_amount")
+@materials_invoice_type.field("baseAmount")
 def resolve_base_amount(invoice, info):
     # Convert Decimal to float for GraphQL
-    return float(invoice.base_amount)
+    return float(invoice.baseAmount)
 
 @materials_invoice_type.field("transaction")
 def resolve_invoice_transaction(invoice, info):
@@ -967,7 +967,7 @@ type MaterialsInvoice {
   id: ID!
   client: Client!
   supplier: Supplier!
-  base_amount: Float!
+  baseAmount: Float!
   status: String!
   transaction: Transaction
   debts: [Debt!]
@@ -1123,8 +1123,8 @@ type_defs = """
         id: ID!
         client: Client!
         supplier: Supplier!
-        invoice_date: String!
-        base_amount: Float!
+        invoiceDate: String!
+        baseAmount: Float!
         status: String!
         transaction: Transaction
         debts(first: Int, after: String): DebtConnection!
@@ -1143,7 +1143,7 @@ type_defs = """
     type Transaction implements Node {
         id: ID!
         invoice: MaterialsInvoice!
-        transaction_date: String!
+        transactionDate: String!
         amount: Float!
     }
     
@@ -1162,7 +1162,7 @@ type_defs = """
         invoice: MaterialsInvoice!
         party: String!
         amount: Float!
-        created_date: String!
+        createdDate: String!
     }
 """
 
@@ -1269,10 +1269,10 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
     
     try:
         # Convert baseAmount to Decimal for precision
-        base_amount = Decimal(str(baseAmount))
+        baseAmount = Decimal(str(baseAmount))
         
         # Parse invoice date
-        invoice_date = datetime.fromisoformat(invoiceDate)
+        invoiceDate = datetime.fromisoformat(invoiceDate)
         
         # Validate existence
         client = Client.query.get(clientId)
@@ -1286,8 +1286,8 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
             return {"invoice": None, "errors": [f"Supplier not found for ID={supplierId}"]}
             
         # Validate amounts
-        if base_amount <= 0:
-            logger.error(f"Invalid base_amount: {base_amount}. Must be positive.")
+        if baseAmount <= 0:
+            logger.error(f"Invalid baseAmount: {baseAmount}. Must be positive.")
             return {"invoice": None, "errors": ["Base amount must be a positive number."]}
             
         if client.markup_rate < 0:
@@ -1313,18 +1313,18 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
             invoice = MaterialsInvoice(
                 client_id=clientId,
                 supplier_id=supplierId,
-                invoice_date=invoice_date,
-                base_amount=base_amount,
+                invoiceDate=invoiceDate,
+                baseAmount=baseAmount,
                 status=invoice_status
             )
             db.session.add(invoice)
             db.session.flush()  # to generate invoice ID
 
             # Transaction and Debt logic
-            transaction_amount = invoice.base_amount * (1 + client.markup_rate)
+            transaction_amount = invoice.baseAmount * (1 + client.markup_rate)
             transaction = Transaction(
                 invoice_id=invoice.id,
-                transaction_date=datetime.utcnow(),
+                transactionDate=datetime.utcnow(),
                 amount=transaction_amount,
             )
             db.session.add(transaction)
@@ -1333,13 +1333,13 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
                 invoice_id=invoice.id,
                 party="client",
                 amount=transaction_amount,
-                created_date=datetime.utcnow()
+                createdDate=datetime.utcnow()
             )
             supplier_debt = Debt(
                 invoice_id=invoice.id,
                 party="supplier",
-                amount=invoice.base_amount,
-                created_date=datetime.utcnow()
+                amount=invoice.baseAmount,
+                createdDate=datetime.utcnow()
             )
             db.session.add(client_debt)
             db.session.add(supplier_debt)
@@ -2310,7 +2310,7 @@ interface Node {
     type Transaction implements Node {
         id: ID!
         amount: Float!
-        transaction_date: String!
+        transactionDate: String!
         invoice: MaterialsInvoice
     }
     
@@ -2328,15 +2328,15 @@ interface Node {
         id: ID!
         party: String!
         amount: Float!
-        created_date: String!
+        createdDate: String!
         invoice: MaterialsInvoice
     }
 
     type MaterialsInvoice implements Node {
         id: ID!
-        base_amount: Float!
+        baseAmount: Float!
         status: String!
-        invoice_date: String!
+        invoiceDate: String!
     }
 ```
 
@@ -3166,7 +3166,7 @@ export type CreateMaterialsInvoiceMutation$data = {
     readonly errors: ReadonlyArray<string | null> | null;
     readonly invoice: {
       readonly __typename: "MaterialsInvoice";
-      readonly base_amount: number;
+      readonly baseAmount: number;
       readonly id: string;
     } | null;
   } | null;
@@ -3246,7 +3246,7 @@ v4 = [
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "base_amount",
+            "name": "baseAmount",
             "storageKey": null
           },
           {
@@ -3303,7 +3303,7 @@ return {
     "metadata": {},
     "name": "CreateMaterialsInvoiceMutation",
     "operationKind": "mutation",
-    "text": "mutation CreateMaterialsInvoiceMutation(\n  $clientId: ID!\n  $supplierId: ID!\n  $invoiceDate: String!\n  $baseAmount: Float!\n) {\n  createMaterialsInvoice(clientId: $clientId, supplierId: $supplierId, invoiceDate: $invoiceDate, baseAmount: $baseAmount) {\n    invoice {\n      id\n      base_amount\n      __typename\n    }\n    errors\n  }\n}\n"
+    "text": "mutation CreateMaterialsInvoiceMutation(\n  $clientId: ID!\n  $supplierId: ID!\n  $invoiceDate: String!\n  $baseAmount: Float!\n) {\n  createMaterialsInvoice(clientId: $clientId, supplierId: $supplierId, invoiceDate: $invoiceDate, baseAmount: $baseAmount) {\n    invoice {\n      id\n      baseAmount\n      __typename\n    }\n    errors\n  }\n}\n"
   }
 };
 })();
@@ -3337,7 +3337,7 @@ export type DebtListQuery$data = {
       readonly cursor: string;
       readonly node: {
         readonly amount: number;
-        readonly created_date: string;
+        readonly createdDate: string;
         readonly id: string;
         readonly invoice: {
           readonly id: string;
@@ -3429,7 +3429,7 @@ v3 = [
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
-                "name": "created_date",
+                "name": "createdDate",
                 "storageKey": null
               },
               {
@@ -3515,7 +3515,7 @@ return {
     "metadata": {},
     "name": "DebtListQuery",
     "operationKind": "query",
-    "text": "query DebtListQuery(\n  $first: Int\n  $after: String\n) {\n  debts(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        party\n        amount\n        created_date\n        invoice {\n          id\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
+    "text": "query DebtListQuery(\n  $first: Int\n  $after: String\n) {\n  debts(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        party\n        amount\n        createdDate\n        invoice {\n          id\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
   }
 };
 })();
@@ -3780,7 +3780,7 @@ export type TransactionListQuery$data = {
         readonly invoice: {
           readonly id: string;
         } | null;
-        readonly transaction_date: string;
+        readonly transactionDate: string;
       } | null;
     } | null> | null;
     readonly pageInfo: {
@@ -3860,7 +3860,7 @@ v3 = [
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
-                "name": "transaction_date",
+                "name": "transactionDate",
                 "storageKey": null
               },
               {
@@ -3946,7 +3946,7 @@ return {
     "metadata": {},
     "name": "TransactionListQuery",
     "operationKind": "query",
-    "text": "query TransactionListQuery(\n  $first: Int\n  $after: String\n) {\n  transactions(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        amount\n        transaction_date\n        invoice {\n          id\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
+    "text": "query TransactionListQuery(\n  $first: Int\n  $after: String\n) {\n  transactions(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        amount\n        transactionDate\n        invoice {\n          id\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
   }
 };
 })();
@@ -4087,7 +4087,7 @@ export const query = graphql`
           id
           party
           amount
-          created_date
+          createdDate
           invoice {
             id
           }
@@ -4150,7 +4150,7 @@ const DebtList: React.FC = () => {
                   <TableCell>{node.id}</TableCell>
                   <TableCell>{node.party}</TableCell>
                   <TableCell>{node.amount}</TableCell>
-                  <TableCell>{node.created_date}</TableCell>
+                  <TableCell>{node.createdDate}</TableCell>
                   <TableCell>{node.invoice?.id}</TableCell>
                 </TableRow>
               );
@@ -4526,18 +4526,18 @@ const NodeViewer: React.FC = () => {
                   name
                 }
                 ... on MaterialsInvoice {
-                  base_amount
+                  baseAmount
                   status
-                  invoice_date
+                  invoiceDate
                 }
                 ... on Transaction {
                   amount
-                  transaction_date
+                  transactionDate
                 }
                 ... on Debt {
                   party
                   amount
-                  created_date
+                  createdDate
                 }
               }
             }
@@ -4652,7 +4652,7 @@ export const query = graphql`
         node {
           id
           amount
-          transaction_date
+          transactionDate
           invoice {
             id
           }
@@ -4712,7 +4712,7 @@ const TransactionList: React.FC = () => {
                 <TableRow key={node.id}>
                   <TableCell>{node.id}</TableCell>
                   <TableCell>{node.amount}</TableCell>
-                  <TableCell>{node.transaction_date}</TableCell>
+                  <TableCell>{node.transactionDate}</TableCell>
                   <TableCell>{node.invoice?.id}</TableCell>
                 </TableRow>
               );
@@ -4947,7 +4947,7 @@ export type CreateMaterialsInvoiceMutationResponse = {
   createMaterialsInvoice: {
     invoice: {
       id: string;
-      base_amount: number;
+      baseAmount: number;
       __typename: string;
     };
     errors: string[] | null;
@@ -4969,7 +4969,7 @@ const mutation = graphql`
     ) {
       invoice {
         id
-        base_amount
+        baseAmount
         __typename
       }
       errors

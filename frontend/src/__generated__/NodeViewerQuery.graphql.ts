@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<bd3215de24730541077cedb0fb241c55>>
+ * @generated SignedSource<<7f68d5598eecc69ddccf66ecf7ec875e>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -14,13 +14,13 @@ export type NodeViewerQuery$variables = {
 };
 export type NodeViewerQuery$data = {
   readonly node: {
-    readonly base_amount?: number;
+    readonly baseAmount?: number;
     readonly client?: {
       readonly id: string;
       readonly name: string;
     };
     readonly id: string;
-    readonly invoice_date?: string;
+    readonly invoiceDate?: string;
     readonly markup_rate?: number;
     readonly name?: string;
     readonly status?: string;
@@ -98,14 +98,14 @@ v7 = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "base_amount",
+      "name": "baseAmount",
       "storageKey": null
     },
     {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "invoice_date",
+      "name": "invoiceDate",
       "storageKey": null
     },
     {
@@ -196,16 +196,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "3f0985fb79fcfb764aaabe48e9abed12",
+    "cacheID": "0219c0f08f3710606fb5e6ea2a162507",
     "id": null,
     "metadata": {},
     "name": "NodeViewerQuery",
     "operationKind": "query",
-    "text": "query NodeViewerQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    id\n    ... on Client {\n      name\n      markup_rate\n    }\n    ... on Supplier {\n      name\n    }\n    ... on MaterialsInvoice {\n      base_amount\n      invoice_date\n      status\n      client {\n        id\n        name\n      }\n      supplier {\n        id\n        name\n      }\n    }\n  }\n}\n"
+    "text": "query NodeViewerQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    id\n    ... on Client {\n      name\n      markup_rate\n    }\n    ... on Supplier {\n      name\n    }\n    ... on MaterialsInvoice {\n      baseAmount\n      invoiceDate\n      status\n      client {\n        id\n        name\n      }\n      supplier {\n        id\n        name\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "8df634e5a92030d02c14e5e89e8b3a53";
+(node as any).hash = "4eaafece80376b86c50877d0d9ba3d86";
 
 export default node;

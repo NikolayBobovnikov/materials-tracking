@@ -249,6 +249,48 @@ describe('PaginatedList Component', () => {
     });
   });
 
+  test('displays error message when JSON parse error occurs', async () => {
+    // Mock useLazyLoadQuery to throw a JSON parse error
+    jest.spyOn(require('react-relay'), 'useLazyLoadQuery').mockImplementation(() => {
+      throw new SyntaxError('JSON.parse: unexpected character at line 1 column 1 of the JSON data');
+    });
+
+    renderWithProviders(
+      <PaginatedList<TestItem>
+        query={testQuery}
+        variables={{ first: 10 }}
+        connectionPath="clients"
+        renderItem={testRenderItem}
+        title="Test Clients"
+      />
+    );
+
+    // Check if error message is rendered
+    expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+    expect(screen.getByText(/JSON.parse: unexpected character/i)).toBeInTheDocument();
+  });
+
+  test('handles network errors correctly', async () => {
+    // Mock useLazyLoadQuery to throw a network error
+    jest.spyOn(require('react-relay'), 'useLazyLoadQuery').mockImplementation(() => {
+      throw new Error('Network error: Failed to fetch');
+    });
+
+    renderWithProviders(
+      <PaginatedList<TestItem>
+        query={testQuery}
+        variables={{ first: 10 }}
+        connectionPath="clients"
+        renderItem={testRenderItem}
+        title="Test Clients"
+      />
+    );
+
+    // Check if error message is rendered
+    expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+    expect(screen.getByText(/Network error/i)).toBeInTheDocument();
+  });
+
   test('should not have accessibility violations', async () => {
     // Mock useLazyLoadQuery to return test data
     jest.spyOn(require('react-relay'), 'useLazyLoadQuery').mockImplementation(() => ({

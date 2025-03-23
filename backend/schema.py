@@ -103,8 +103,8 @@ type_defs = """
         id: ID!
         client: Client!
         supplier: Supplier!
-        invoice_date: String!
-        base_amount: Float!
+        invoiceDate: String!
+        baseAmount: Float!
         status: String!
         transaction: Transaction
         debts(first: Int, after: String): DebtConnection!
@@ -123,7 +123,7 @@ type_defs = """
     type Transaction implements Node {
         id: ID!
         invoice: MaterialsInvoice!
-        transaction_date: String!
+        transactionDate: String!
         amount: Float!
     }
     
@@ -142,7 +142,7 @@ type_defs = """
         invoice: MaterialsInvoice!
         party: String!
         amount: Float!
-        created_date: String!
+        createdDate: String!
     }
 """
 
@@ -237,19 +237,19 @@ def resolve_debt_id(obj, info):
     return to_global_id("Debt", obj.id)
 
 # Numeric field resolvers to format decimal values consistently
-@materials_invoice.field("invoice_date")
+@materials_invoice.field("invoiceDate")
 def resolve_materials_invoice_date(obj, *_):
-    # Format invoice_date as 'YYYY-MM-DD' without time component
-    return obj.invoice_date.strftime('%Y-%m-%d')
+    # Format invoiceDate as 'YYYY-MM-DD' without time component
+    return obj.invoiceDate.strftime('%Y-%m-%d')
 
 @materials_invoice.field("status")
 def resolve_materials_invoice_status(obj, *_):
     # Return just the status name without the enum class prefix
     return obj.status.name
 
-@materials_invoice.field("base_amount")
+@materials_invoice.field("baseAmount")
 def resolve_materials_invoice_base_amount(obj, *_):
-    return f"{float(obj.base_amount):.2f}"
+    return f"{float(obj.baseAmount):.2f}"
 
 @client.field("markup_rate")
 def resolve_client_markup_rate(obj, *_):
@@ -271,10 +271,10 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
     
     try:
         # Convert baseAmount to Decimal for precision
-        base_amount = Decimal(str(baseAmount))
+        baseAmount = Decimal(str(baseAmount))
         
         # Parse invoice date
-        invoice_date = datetime.fromisoformat(invoiceDate)
+        invoiceDate = datetime.fromisoformat(invoiceDate)
         
         # Decode global IDs
         client_type, client_db_id = from_global_id(clientId)
@@ -296,8 +296,8 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
             return {"invoice": None, "errors": [f"Supplier not found for ID={supplierId}"]}
             
         # Validate amounts
-        if base_amount <= 0:
-            logger.error(f"Invalid base_amount: {base_amount}. Must be positive.")
+        if baseAmount <= 0:
+            logger.error(f"Invalid baseAmount: {baseAmount}. Must be positive.")
             return {"invoice": None, "errors": ["Base amount must be a positive number."]}
             
         if client.markup_rate < 0:
@@ -330,18 +330,18 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
         invoice = MaterialsInvoice(
             client_id=client_db_id,
             supplier_id=supplier_db_id,
-            invoice_date=invoice_date,
-            base_amount=base_amount,
+            invoiceDate=invoiceDate,
+            baseAmount=baseAmount,
             status=invoice_status
         )
         db.session.add(invoice)
         db.session.flush()  # to generate invoice ID
 
         # Transaction and Debt logic
-        transaction_amount = invoice.base_amount * (1 + client.markup_rate)
+        transaction_amount = invoice.baseAmount * (1 + client.markup_rate)
         transaction = Transaction(
             invoice_id=invoice.id,
-            transaction_date=datetime.utcnow(),
+            transactionDate=datetime.utcnow(),
             amount=transaction_amount,
         )
         db.session.add(transaction)
@@ -350,13 +350,13 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
             invoice_id=invoice.id,
             party="client",
             amount=transaction_amount,
-            created_date=datetime.utcnow()
+            createdDate=datetime.utcnow()
         )
         supplier_debt = Debt(
             invoice_id=invoice.id,
             party="supplier",
-            amount=invoice.base_amount,
-            created_date=datetime.utcnow()
+            amount=invoice.baseAmount,
+            createdDate=datetime.utcnow()
         )
         db.session.add(client_debt)
         db.session.add(supplier_debt)

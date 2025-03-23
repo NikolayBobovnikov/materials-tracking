@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<29eda91a3b3d6bb128d45a12b702cc10>>
+ * @generated SignedSource<<3de9442434d6071e39b1c97e3d1e4f9d>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -20,7 +20,7 @@ export type TransactionListQuery$data = {
       readonly node: {
         readonly amount: number;
         readonly id: string;
-        readonly transaction_date: string;
+        readonly transactionDate: string;
       };
     } | null> | null;
     readonly pageInfo: {
@@ -99,7 +99,7 @@ v2 = [
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
-                "name": "transaction_date",
+                "name": "transactionDate",
                 "storageKey": null
               }
             ],
@@ -168,16 +168,16 @@ return {
     "selections": (v2/*: any*/)
   },
   "params": {
-    "cacheID": "eb6e0105b7c0937a0ef3ce900386aefa",
+    "cacheID": "cb229cbe1474f72782a9425fc9ae7bae",
     "id": null,
     "metadata": {},
     "name": "TransactionListQuery",
     "operationKind": "query",
-    "text": "query TransactionListQuery(\n  $first: Int\n  $after: String\n) {\n  transactions(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        amount\n        transaction_date\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
+    "text": "query TransactionListQuery(\n  $first: Int\n  $after: String\n) {\n  transactions(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        amount\n        transactionDate\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "48453985bec8ef096bed3fa3a99c7f98";
+(node as any).hash = "0af21a77d7540469e35b3af7a5ae3640";
 
 export default node;

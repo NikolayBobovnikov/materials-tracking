@@ -44,8 +44,8 @@ class MaterialsInvoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
     supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'), nullable=False)
-    invoice_date = db.Column(db.DateTime, default=datetime.utcnow)
-    base_amount = db.Column(Numeric(10, 2), nullable=False)
+    invoiceDate = db.Column(db.DateTime, default=datetime.utcnow)
+    baseAmount = db.Column(Numeric(10, 2), nullable=False)
     status = db.Column(db.Enum(InvoiceStatus), default=InvoiceStatus.UNPAID, nullable=False)
 
     # One-to-one relationship with Transaction
@@ -57,19 +57,19 @@ class MaterialsInvoice(db.Model):
     def __init__(self, **kwargs):
         """Initialize with validation."""
         super(MaterialsInvoice, self).__init__(**kwargs)
-        if 'base_amount' in kwargs and kwargs['base_amount'] <= 0:
+        if 'baseAmount' in kwargs and kwargs['baseAmount'] <= 0:
             raise ValueError("Base amount must be a positive number")
     
     def __repr__(self) -> str:
         """String representation of MaterialsInvoice."""
-        return f"<MaterialsInvoice id={self.id} amount={self.base_amount} status={self.status.name}>"
+        return f"<MaterialsInvoice id={self.id} amount={self.baseAmount} status={self.status.name}>"
 
 class Transaction(db.Model):
     """Transaction model for financial exchanges."""
     __tablename__ = 'transactions'
     id = db.Column(db.Integer, primary_key=True)
     invoice_id = db.Column(db.Integer, db.ForeignKey('materials_invoices.id'), nullable=False)
-    transaction_date = db.Column(db.DateTime, default=datetime.utcnow)
+    transactionDate = db.Column(db.DateTime, default=datetime.utcnow)
     amount = db.Column(Numeric(10, 2), nullable=False)
     
     def __repr__(self) -> str:
@@ -83,7 +83,7 @@ class Debt(db.Model):
     invoice_id = db.Column(db.Integer, db.ForeignKey('materials_invoices.id'), nullable=False)
     party = db.Column(db.String(50), nullable=False)
     amount = db.Column(Numeric(10, 2), nullable=False)
-    created_date = db.Column(db.DateTime, default=datetime.utcnow)
+    createdDate = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self) -> str:
         """String representation of Debt."""

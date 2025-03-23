@@ -12,7 +12,7 @@ const query = graphql`
           id
           party
           amount
-          created_date
+          createdDate
         }
         cursor
       }
@@ -29,7 +29,7 @@ type DebtNode = {
   id: string;
   party: string;
   amount: number;
-  created_date: string;
+  createdDate: string;
 };
 
 const DebtList: React.FC = () => {
@@ -44,7 +44,7 @@ const DebtList: React.FC = () => {
           <TableCell>{node.id}</TableCell>
           <TableCell>{node.party}</TableCell>
           <TableCell>${node.amount.toFixed(2)}</TableCell>
-          <TableCell>{new Date(node.created_date).toLocaleDateString()}</TableCell>
+          <TableCell>{new Date(node.createdDate).toLocaleDateString()}</TableCell>
         </>
       )}
     />

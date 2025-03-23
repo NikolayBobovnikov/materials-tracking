@@ -10,9 +10,9 @@ def test_simple():
 
 def test_calculation():
     """Test the markup calculation logic."""
-    base_amount = Decimal('100.00')
+    baseAmount = Decimal('100.00')
     markup_rate = Decimal('0.15')
-    expected_transaction_amount = base_amount * (Decimal('1') + markup_rate)
+    expected_transaction_amount = baseAmount * (Decimal('1') + markup_rate)
     assert expected_transaction_amount == Decimal('115.00')
 
 def test_error_handling():

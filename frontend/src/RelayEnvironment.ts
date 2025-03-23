@@ -38,7 +38,25 @@ const fetchQuery = (
       query: operation.text, // GraphQL text from Relay
       variables,
     }),
-  }).then(response => response.json());
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`Network error: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
+  })
+  .then(json => {
+    // Check if the response contains GraphQL errors
+    if (json.errors) {
+      console.error('GraphQL Errors:', json.errors);
+      throw new Error(`GraphQL Error: ${json.errors.map((e: { message: string }) => e.message).join(', ')}`);
+    }
+    return json;
+  })
+  .catch(error => {
+    console.error('Relay query error:', error);
+    throw error;
+  });
 }
 
 export const RelayEnvironment = new Environment({
