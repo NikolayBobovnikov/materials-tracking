@@ -36,14 +36,11 @@
     "test:ci": "cross-env CI=true craco test --watchAll=false --testPathIgnorePatterns=PaginatedList.test.tsx --passWithNoTests",
     "test:coverage": "craco test --coverage --watchAll=false",
     "test:debug": "craco --inspect-brk test --runInBand --no-cache",
-    "test:e2e": "start-server-and-test dev http://localhost:3000 cypress:run",
     "test:api": "node test-api-connection.js",
     "eject": "react-scripts eject",
     "relay": "relay-compiler",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
-    "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
   },
   "eslintConfig": {
     "extends": [
@@ -73,7 +70,6 @@
     "autoprefixer": "^10.4.14",
     "babel-plugin-relay": "^14.0.0",
     "cross-env": "^7.0.3",
-    "cypress": "^12.12.0",
     "globby": "^11.0.4",
     "jest-axe": "^7.0.1",
     "jest-junit": "^16.0.0",
