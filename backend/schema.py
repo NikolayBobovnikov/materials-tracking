@@ -436,7 +436,7 @@ def resolve_connection(model_class, obj=None, info=None, first=None, after=None,
     if obj is not None:
         # For relationship fields like client.invoices
         # Determine the foreign key name based on the related table name
-        foreign_key = f"{obj.__tablename__}_id"
+        foreign_key = f"{obj.__class__.__name__.lower()}_id"
         query = model_class.query.filter_by(**{foreign_key: obj.id})
     else:
         # For root queries
