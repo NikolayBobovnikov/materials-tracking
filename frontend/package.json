@@ -29,20 +29,19 @@
   },
   "scripts": {
     "start": "npm run relay && craco start",
-    "build": "npm run type-check && npm run lint && npm run relay && craco build",
     "dev": "npm run relay && craco start",
+    "build": "npm run type-check && npm run lint && npm run relay && craco build",
     "test": "craco test",
-    "test-ci": "cross-env CI=true craco test --watchAll=false --testPathIgnorePatterns=PaginatedList.test.tsx --passWithNoTests",
+    "test:ci": "cross-env CI=true craco test --watchAll=false --testPathIgnorePatterns=PaginatedList.test.tsx --passWithNoTests",
     "test:coverage": "craco test --coverage --watchAll=false",
     "test:debug": "craco --inspect-brk test --runInBand --no-cache",
+    "test:e2e": "start-server-and-test dev http://localhost:3000 cypress:run",
     "eject": "react-scripts eject",
     "relay": "relay-compiler",
     "type-check": "tsc --noEmit",
-    "type-check-all": "node scripts/type-check-all.js",
     "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run",
-    "test:e2e": "start-server-and-test dev http://localhost:3000 cypress:run"
+    "cypress:run": "cypress run"
   },
   "eslintConfig": {
     "extends": [
