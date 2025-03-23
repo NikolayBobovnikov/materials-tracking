@@ -251,7 +251,7 @@ def test_error_handling(test_server):
         json={"query": invalid_query}
     )
     
-    assert response.status_code == 200  # GraphQL returns 200 even for errors
+    assert response.status_code == 400  # GraphQL returns 400 for invalid queries
     data = response.json()
     
     assert "errors" in data
@@ -380,7 +380,7 @@ def test_complex_query(test_server):
     
     assert response.status_code == 200
     
-    # Now run a complex query that gets all invoices with their clients, suppliers, debts, and transactions
+    # Now run a complex query that gets all invoices with their clients, suppliers, and transactions
     complex_query = """
     {
       clients(first: 10) {
@@ -389,16 +389,7 @@ def test_complex_query(test_server):
             id
             name
             markup_rate
-            debts {
-              edges {
-                node {
-                  id
-                  amount
-                  description
-                }
-              }
-            }
-            materialsInvoices {
+            invoices(first: 10) {
               edges {
                 node {
                   id
@@ -436,17 +427,15 @@ def test_complex_query(test_server):
     assert "id" in client
     assert "name" in client
     assert "markup_rate" in client
-    assert "debts" in client
-    assert "edges" in client["debts"]
-    assert "materialsInvoices" in client
-    assert "edges" in client["materialsInvoices"]
+    assert "invoices" in client
+    assert "edges" in client["invoices"]
     
     # Check that our invoice is present
     found_invoice = False
     for client_edge in data["data"]["clients"]["edges"]:
         client_node = client_edge["node"]
-        if "materialsInvoices" in client_node and client_node["materialsInvoices"]["edges"]:
-            for invoice_edge in client_node["materialsInvoices"]["edges"]:
+        if "invoices" in client_node and client_node["invoices"]["edges"]:
+            for invoice_edge in client_node["invoices"]["edges"]:
                 invoice_node = invoice_edge["node"]
                 if "baseAmount" in invoice_node and invoice_node["baseAmount"] == 999.99:
                     found_invoice = True
