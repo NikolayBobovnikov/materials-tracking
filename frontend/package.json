@@ -32,11 +32,18 @@
     "build": "npm run type-check && npm run lint && npm run relay && craco build",
     "dev": "npm run relay && craco start",
     "test": "craco test",
+    "test:coverage": "craco test --coverage --watchAll=false",
+    "test:ci": "craco test --ci --coverage --watchAll=false",
+    "test:watch": "craco test --watch",
+    "test:debug": "craco --inspect-brk test --runInBand --no-cache",
     "eject": "react-scripts eject",
     "relay": "relay-compiler",
     "type-check": "tsc --noEmit",
     "type-check-all": "node scripts/type-check-all.js",
-    "lint": "eslint src --ext .ts,.tsx --max-warnings=0"
+    "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test:e2e": "start-server-and-test dev http://localhost:3000 cypress:run"
   },
   "eslintConfig": {
     "extends": [
@@ -66,9 +73,37 @@
     "autoprefixer": "^10.4.14",
     "babel-plugin-relay": "^14.0.0",
     "cross-env": "^7.0.3",
+    "cypress": "^12.12.0",
     "globby": "^11.0.4",
+    "jest-axe": "^7.0.1",
+    "jest-junit": "^16.0.0",
+    "jest-watch-typeahead": "^2.2.2",
+    "msw": "^1.2.1",
     "postcss": "^8.4.21",
     "relay-compiler": "^14.0.0",
-    "tailwindcss": "^3.3.1"
+    "start-server-and-test": "^2.0.0",
+    "tailwindcss": "^3.3.1",
+    "ts-jest": "^29.1.0"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx,ts,tsx}",
+      "!src/**/*.d.ts",
+      "!src/index.tsx",
+      "!src/reportWebVitals.ts",
+      "!src/__generated__/**"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 70,
+        "functions": 70,
+        "lines": 70,
+        "statements": 70
+      }
+    },
+    "reporters": [
+      "default",
+      ["jest-junit", {"outputDirectory": "coverage", "outputName": "junit.xml"}]
+    ]
   }
 }

@@ -28,7 +28,7 @@ from ariadne.explorer import ExplorerGraphiQL
 from schema import schema
 from sqlalchemy import text
 
-def create_app():
+def create_app(testing=False):
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,
@@ -42,6 +42,8 @@ def create_app():
 
     # Load DB URI from .env or fallback to local SQLite
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:///test.db')
+    if testing:
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Initialize database and migrations
