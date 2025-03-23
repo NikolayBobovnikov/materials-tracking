@@ -8,6 +8,7 @@ import logging
 from decimal import Decimal
 
 from models import db, Client, Supplier, MaterialsInvoice, Transaction, Debt, InvoiceStatus
+from utils import to_global_id, from_global_id
 
 # Get logger
 logger = logging.getLogger(__name__)
@@ -151,23 +152,38 @@ mutation = MutationType()
 # Query resolvers
 @query.field("client")
 def resolve_client(_, info, id):
-    return Client.query.get(id)
+    type_name, db_id = from_global_id(id)
+    if type_name != "Client":
+        return None
+    return Client.query.get(db_id)
 
 @query.field("supplier")
 def resolve_supplier(_, info, id):
-    return Supplier.query.get(id)
+    type_name, db_id = from_global_id(id)
+    if type_name != "Supplier":
+        return None
+    return Supplier.query.get(db_id)
 
 @query.field("invoice")
 def resolve_invoice(_, info, id):
-    return MaterialsInvoice.query.get(id)
+    type_name, db_id = from_global_id(id)
+    if type_name != "MaterialsInvoice":
+        return None
+    return MaterialsInvoice.query.get(db_id)
 
 @query.field("transaction")
 def resolve_transaction(_, info, id):
-    return Transaction.query.get(id)
+    type_name, db_id = from_global_id(id)
+    if type_name != "Transaction":
+        return None
+    return Transaction.query.get(db_id)
 
 @query.field("debt")
 def resolve_debt(_, info, id):
-    return Debt.query.get(id)
+    type_name, db_id = from_global_id(id)
+    if type_name != "Debt":
+        return None
+    return Debt.query.get(db_id)
 
 # Type resolvers
 client = ObjectType("Client")
@@ -196,6 +212,27 @@ def resolve_transaction_invoice(obj, *_):
 def resolve_debt_invoice(obj, *_):
     return MaterialsInvoice.query.get(obj.invoice_id)
 
+# ID field resolvers for each type
+@client.field("id")
+def resolve_client_id(obj, info):
+    return to_global_id("Client", obj.id)
+
+@supplier.field("id")
+def resolve_supplier_id(obj, info):
+    return to_global_id("Supplier", obj.id)
+
+@materials_invoice.field("id")
+def resolve_materials_invoice_id(obj, info):
+    return to_global_id("MaterialsInvoice", obj.id)
+
+@transaction.field("id")
+def resolve_transaction_id(obj, info):
+    return to_global_id("Transaction", obj.id)
+
+@debt.field("id")
+def resolve_debt_id(obj, info):
+    return to_global_id("Debt", obj.id)
+
 # Mutation resolvers
 @mutation.field("createMaterialsInvoice")
 def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate, baseAmount, status=None):
@@ -220,13 +257,21 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
         # Parse invoice date
         invoice_date = datetime.fromisoformat(invoiceDate)
         
+        # Decode global IDs
+        client_type, client_db_id = from_global_id(clientId)
+        supplier_type, supplier_db_id = from_global_id(supplierId)
+        
+        if client_type != "Client" or supplier_type != "Supplier":
+            logger.error(f"Invalid ID types: client_type={client_type}, supplier_type={supplier_type}")
+            return {"invoice": None, "errors": ["Invalid ID types provided"]}
+        
         # Validate existence
-        client = Client.query.get(clientId)
+        client = Client.query.get(client_db_id)
         if not client:
             logger.error(f"Client not found for ID={clientId}")
             return {"invoice": None, "errors": [f"Client not found for ID={clientId}"]}
             
-        supplier = Supplier.query.get(supplierId)
+        supplier = Supplier.query.get(supplier_db_id)
         if not supplier:
             logger.error(f"Supplier not found for ID={supplierId}")
             return {"invoice": None, "errors": [f"Supplier not found for ID={supplierId}"]}
@@ -241,7 +286,7 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
             return {"invoice": None, "errors": [f"Invalid markup_rate: {client.markup_rate}. Must be >= 0."]}
             
         # Additional validation: prevent client and supplier from being the same
-        if clientId == supplierId:
+        if client_db_id == supplier_db_id:
             logger.error(f"Client and supplier cannot be the same entity")
             return {"invoice": None, "errors": ["Client and supplier cannot be the same entity."]}
 
@@ -257,8 +302,8 @@ def resolve_create_materials_invoice(_, info, clientId, supplierId, invoiceDate,
                     ]}
             
             invoice = MaterialsInvoice(
-                client_id=clientId,
-                supplier_id=supplierId,
+                client_id=client_db_id,
+                supplier_id=supplier_db_id,
                 invoice_date=invoice_date,
                 base_amount=base_amount,
                 status=invoice_status
@@ -321,21 +366,23 @@ def resolve_node_type(obj, *_):
 
 @query.field("node")
 def resolve_node(_, info, id):
-    # Parse the global ID to determine type and database ID
-    # This is a simple implementation; in production, you'd want to encode/decode IDs properly
     try:
-        type_name, database_id = id.split(":")
+        # Decode the global ID to determine type and database ID
+        type_name, db_id = from_global_id(id)
+        
         if type_name == "Client":
-            return Client.query.get(database_id)
+            return Client.query.get(db_id)
         elif type_name == "Supplier":
-            return Supplier.query.get(database_id)
+            return Supplier.query.get(db_id)
         elif type_name == "MaterialsInvoice":
-            return MaterialsInvoice.query.get(database_id)
+            return MaterialsInvoice.query.get(db_id)
         elif type_name == "Transaction":
-            return Transaction.query.get(database_id)
+            return Transaction.query.get(db_id)
         elif type_name == "Debt":
-            return Debt.query.get(database_id)
-    except:
+            return Debt.query.get(db_id)
+    except Exception as e:
+        # Log error if necessary and return None if ID cannot be decoded
+        logger.error(f"Error resolving node: {str(e)}")
         return None
     return None
 

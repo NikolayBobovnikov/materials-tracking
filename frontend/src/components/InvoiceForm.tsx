@@ -1,10 +1,10 @@
 import React from 'react';
-import { TextField, Button, Box, CircularProgress, MenuItem, FormHelperText } from '@mui/material';
+import { TextField, Button, Box, CircularProgress, MenuItem } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { graphql, useLazyLoadQuery } from 'react-relay';
 import { useMutation } from 'react-relay/hooks';
 import type { InvoiceFormClientsSuppliersQuery } from './../__generated__/InvoiceFormClientsSuppliersQuery.graphql';
-import { RelayEnvironment, resetRelayEnvironment } from '../RelayEnvironment';
+import { resetRelayEnvironment } from '../RelayEnvironment';
 
 // Query for clients and suppliers with smaller initial batch
 const query = graphql`
@@ -78,16 +78,6 @@ type InvoiceFormInputs = {
   baseAmount: number;
 };
 
-type ClientNode = {
-  id: string;
-  name: string;
-};
-
-type SupplierNode = {
-  id: string;
-  name: string;
-};
-
 // Response type for createMaterialsInvoice mutation
 interface MutationResponse {
   createMaterialsInvoice: {
@@ -109,34 +99,17 @@ interface MutationResponse {
   };
 }
 
-// Define a type that matches the actual query response structure
-type QueryResponse = {
-  clients: {
-    edges: Array<{
-      node: ClientNode;
-      cursor: string;
-    } | null> | null;
-    pageInfo: {
-      hasNextPage: boolean;
-      endCursor: string | null;
-    };
-  };
-  suppliers: {
-    edges: Array<{
-      node: SupplierNode;
-      cursor: string;
-    } | null> | null;
-    pageInfo: {
-      hasNextPage: boolean;
-      endCursor: string | null;
-    };
-  };
-};
+// Define a type for form errors instead of using 'any'
+interface FormErrorState {
+  message: string;
+}
 
 const InvoiceForm: React.FC = () => {
-  const { register, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm<InvoiceFormInputs>();
-  const [clientsAfter, setClientsAfter] = React.useState<string | null>(null);
-  const [suppliersAfter, setSuppliersAfter] = React.useState<string | null>(null);
+  const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<InvoiceFormInputs>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_clientsAfter] = React.useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_suppliersAfter] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -152,8 +125,8 @@ const InvoiceForm: React.FC = () => {
     { 
       clientsFirst: 10, 
       suppliersFirst: 10,
-      clientsAfter,
-      suppliersAfter
+      clientsAfter: null,
+      suppliersAfter: null
     },
     {
       fetchPolicy: 'network-only' // Force network fetch, ignore cache
@@ -211,15 +184,6 @@ const InvoiceForm: React.FC = () => {
   console.log('Clients list:', clientsList);
   console.log('Suppliers list:', suppliersList);
   
-  // Handle load more for clients or suppliers
-  const handleLoadMore = (type: 'clients' | 'suppliers'): void => {
-    if (type === 'clients' && data?.clients?.pageInfo.endCursor) {
-      setClientsAfter(data.clients.pageInfo.endCursor);
-    } else if (type === 'suppliers' && data?.suppliers?.pageInfo.endCursor) {
-      setSuppliersAfter(data.suppliers.pageInfo.endCursor);
-    }
-  };
-
   // Set up mutation
   const [commitMutation, isMutationInFlight] = useMutation(createInvoiceMutation);
 
@@ -248,30 +212,17 @@ const InvoiceForm: React.FC = () => {
           return;
         }
         
-        setSuccess('Invoice created: ' + typedResponse?.createMaterialsInvoice?.invoice?.id);
-        reset(); // Reset form fields
-
-        // Instead of reloading the page, refresh the query data
-        setClientsAfter(null);
-        setSuppliersAfter(null);
+        if (errors) {
+          setError('Error creating invoice: ' + errors.map((err: FormErrorState) => err.message).join(', '));
+          return;
+        }
+        
+        setSuccess('Invoice created successfully');
+        reset(); // Reset form
       },
-      onError: (err: Error) => {
+      onError: error => {
         setLoading(false);
-        setError(err.message || 'Error creating invoice');
-        console.error(err);
-      },
-      updater: (store: any) => {
-        const payload = store.getRootField('createMaterialsInvoice');
-        if (!payload) return;
-        
-        const invoice = payload.getLinkedRecord('invoice');
-        if (!invoice) return;
-        
-        setTimeout(() => {
-          // Reset pagination state to trigger a refetch
-          setClientsAfter(null);
-          setSuppliersAfter(null);
-        }, 1500);
+        setError('Error creating invoice: ' + error.message);
       }
     });
   };
